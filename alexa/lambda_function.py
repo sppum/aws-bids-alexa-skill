@@ -1,3 +1,5 @@
+import boto3
+
 ##############################
 # Builders
 ##############################
@@ -148,7 +150,6 @@ def intent_router(event, context):
 
 
 def lambda_handler(event, context):
-    print('egg')
     print(event)
     if event['request']['type'] == "LaunchRequest":
         return on_launch(event, context)
