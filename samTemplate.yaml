@@ -15,6 +15,7 @@ Resources:
       Environment:
         Variables:
           SNS_TOPIC: !Ref awsBidsAlexaSns
+          DYNAMODB_TABLE: !Ref bidsLoginTable
 
   awsBidsEmailerSkill:
     Type: AWS::Serverless::Function
@@ -36,3 +37,31 @@ Resources:
     Properties: 
       DisplayName: AWS Bids Alexa Topic
       TopicName: awsBidsAlexaSns
+
+  bidsLoginTable:
+    Type: "AWS::DynamoDB::Table"
+    Properties:
+      AttributeDefinitions:
+        -
+          AttributeName: "Organisation"
+          AttributeType: "S"
+        -
+          AttributeName: "Url"
+          AttributeType: "S"
+        -
+          AttributeName: "Username"
+          AttributeType: "S"
+        -
+          AttributeName: "Password"
+          AttributeType: "S"
+        -
+          AttributeName: "Region"
+          AttributeType: "S"
+      KeySchema:
+        -
+          AttributeName: "Organisation"
+          KeyType: "HASH"
+      ProvisionedThroughput:
+        ReadCapacityUnits: "5"
+        WriteCapacityUnits: "5"
+      TableName: "bidsLoginTable"
