@@ -3,8 +3,7 @@ version: 0.1
 phases:
   install:
     commands:
-      - pip install -r requirements.txt -t alexa/
-      - pip install -r requirements.txt -t emailer/
+      - pip install -r emailer/requirements.txt -t emailer/
       - aws cloudformation package --template-file samTemplate.yaml --s3-bucket aws-bids-alexa-pipeline-codepipelinebucket-1vwh6idvuy0he
                                    --output-template-file outputSamTemplate.yaml
 artifacts:
