@@ -110,12 +110,17 @@ def stop_intent():
     return statement("StopIntent", "You want to stop")		#here also don't use StopIntent
 
 
+def not_linked_intent():
+    return statement("NotLinked", "Your user details are not available at this time.  Have you completed account linking via the Alexa app?")		#here also don't use StopIntent
+
 ##############################
 # On Launch
 ##############################
 
 
 def on_launch(event, context):
+    if event['session']['user']['accessToken']) is None:
+        return not_linked_intent()
     return statement("title", "body")
 
 
