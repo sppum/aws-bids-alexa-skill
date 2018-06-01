@@ -1,14 +1,20 @@
 """
-This sample demonstrates a simple skill built with the Amazon Alexa Skills Kit.
-The Intent Schema, Custom Slots, and Sample Utterances for this skill, as well
-as testing instructions are located at http://amzn.to/1LzFrj6
-
-For additional samples, visit the Alexa Skills Kit Getting Started guide at
-http://amzn.to/1LGWsLG
+This is a proof of concept to demonstrate how Alexa might be used to support the bids team.
 """
 
 from __future__ import print_function
+from bs4 import BeautifulSoup
+import requests
+from xhtml2pdf import pisa
+from fuzzywuzzy import fuzz
+from fuzzywuzzy import process
+from operator import itemgetter
+import boto3
+from email.mime.text import MIMEText
+from email.mime.application import MIMEApplication
+from email.mime.multipart import MIMEMultipart
 
+response = requests.get('https://aws.amazon.com/products/').text
 
 # --------------- Helpers that build all of the responses ----------------------
 
@@ -50,13 +56,11 @@ def get_welcome_response():
 
     session_attributes = {}
     card_title = "Welcome"
-    speech_output = "Welcome to the Alexa Skills Kit sample. " \
-                    "Please tell me your favorite color by saying, " \
-                    "my favorite color is red"
+    speech_output = "Welcome to the Alexa skill for the bids team. " \
+                    "Please ask me to email you a service description"
     # If the user either does not reply to the welcome message or says something
     # that is not understood, they will be prompted again with this text.
-    reprompt_text = "Please tell me your favorite color by saying, " \
-                    "my favorite color is red."
+    reprompt_text = "Please ask me to email you a service description"
     should_end_session = False
     return build_response(session_attributes, build_speechlet_response(
         card_title, speech_output, reprompt_text, should_end_session))
@@ -64,21 +68,15 @@ def get_welcome_response():
 
 def handle_session_end_request():
     card_title = "Session Ended"
-    speech_output = "Thank you for trying the Alexa Skills Kit sample. " \
-                    "Have a nice day! "
+    speech_output = "Thank you for trying the Alexa Skill for the bid team. " 
     # Setting this to true ends the session and exits the skill.
     should_end_session = True
     return build_response({}, build_speechlet_response(
         card_title, speech_output, None, should_end_session))
 
 
-def create_favorite_color_attributes(favorite_color):
-    return {"favoriteColor": favorite_color}
-
-
 def sendServiceDescription(intent, session):
-    """ Sets the color in the session and prepares the speech to reply to the
-    user.
+    """ Emails a service description to a user.
     """
 
     card_title = intent['name']
@@ -87,7 +85,9 @@ def sendServiceDescription(intent, session):
 
     if 'service' in intent['slots']:
         service_name = intent['slots']['service']['value']
-        #session_attributes = create_favorite_color_attributes(favorite_color)
+        service = findService(service_name)
+        createPdf(service['serviceUrl'])
+        resultResponse = sendEmail(service['serviceName'], 'charlie.j.llewellyn@gmail.com')
         speech_output = "I'm emailing you a service description for  " + \
                         service_name
         reprompt_text = "You can ask me to email you a service description by saying, " \
@@ -100,27 +100,6 @@ def sendServiceDescription(intent, session):
                         "email me a service description for workspaces"
     return build_response(session_attributes, build_speechlet_response(
         card_title, speech_output, reprompt_text, should_end_session))
-
-
-def get_color_from_session(intent, session):
-    session_attributes = {}
-    reprompt_text = None
-
-    if session.get('attributes', {}) and "favoriteColor" in session.get('attributes', {}):
-        favorite_color = session['attributes']['favoriteColor']
-        speech_output = "Your favorite color is " + favorite_color + \
-                        ". Goodbye."
-        should_end_session = True
-    else:
-        speech_output = "I'm not sure what your favorite color is. " \
-                        "You can say, my favorite color is red."
-        should_end_session = False
-
-    # Setting reprompt_text to None signifies that we do not want to reprompt
-    # the user. If the user does not respond or says something that is not
-    # understood, the session will end.
-    return build_response(session_attributes, build_speechlet_response(
-        intent['name'], speech_output, reprompt_text, should_end_session))
 
 
 # --------------- Events ------------------
@@ -155,14 +134,12 @@ def on_intent(intent_request, session):
     # Dispatch to your skill's intent handlers
     if intent_name == "emailServiceDescription":
         return sendServiceDescription(intent, session)
-    #elif intent_name == "WhatsMyColorIntent":
-    #    return get_color_from_session(intent, session)
-    #elif intent_name == "AMAZON.HelpIntent":
-    #    return get_welcome_response()
-    #elif intent_name == "AMAZON.CancelIntent" or intent_name == "AMAZON.StopIntent":
-    #    return handle_session_end_request()
-    #else:
-    #    raise ValueError("Invalid intent")
+    elif intent_name == "AMAZON.HelpIntent":
+        return get_welcome_response()
+    elif intent_name == "AMAZON.CancelIntent" or intent_name == "AMAZON.StopIntent":
+        return handle_session_end_request()
+    else:
+        raise ValueError("Invalid intent")
 
 
 def on_session_ended(session_ended_request, session):
@@ -174,6 +151,71 @@ def on_session_ended(session_ended_request, session):
           ", sessionId=" + session['sessionId'])
     # add cleanup logic here
 
+def getServiceList():
+    soup = BeautifulSoup(response, "html.parser")
+    serviceList = []
+    for service in soup.find_all(class_="lb-content-item"):
+        serviceUrl = service.a['href']
+        serviceName = service.a.contents[0]
+        serviceList.append({'serviceName': serviceName, 'serviceUrl': 'https://aws.amazon.com' + serviceUrl })
+    return serviceList
+
+def getServiceDescription(serviceUrl):
+    response = requests.get(serviceUrl).text
+    soup = BeautifulSoup(response, "html.parser")
+    return soup.find("div", {"id": "aws-page-content"})
+
+def createPdf(serviceUrl):
+    outputFilename = "/tmp/service_description.pdf"
+    resultFile = open(outputFilename, "w+b")
+    pisa.CreatePDF(getServiceDescription(serviceUrl).encode('utf-8'), resultFile)
+    resultFile.close()
+
+def findService(serviceName):
+    confidenceList = []
+    serviceList = getServiceList()
+    for service in serviceList:
+        service.update({'ratio': fuzz.ratio(service, serviceName)})
+        confidenceList.append(service)
+    sortedConfidenceList = sorted(confidenceList, key=itemgetter('ratio'), reverse=True)
+    return sortedConfidenceList[0]
+
+def verifyEmail(email):
+    client = boto3.client('ses')
+    response = client.list_verified_email_addresses()
+    if email in response['VerifiedEmailAddresses']:
+        return None
+    else:
+        response = client.verify_email_address(
+            EmailAddress=email,
+        )
+        return True
+
+def sendEmail(serviceName, emailAddress):
+    client = boto3.client('ses')
+    if verifyEmail(emailAddress) == None:
+        msg = MIMEMultipart()
+        msg['Subject'] = 'Test'
+        msg['From'] = emailAddress
+        msg['To'] = emailAddress
+
+        msg.preamble = 'Multipart message.\n'
+
+        part = MIMEText('Here is the service description for ' + serviceName)
+        msg.attach(part)
+
+        part = MIMEApplication(open('/tmp/service_description.pdf', 'rb').read())
+        part.add_header('Content-Disposition', 'attachment', filename='service_description.pdf')
+        msg.attach(part)
+
+        result = client.send_raw_email(RawMessage={
+            'Data': msg.as_string()
+            }
+            , Source=msg['From'])
+        print(result)
+        return "I'm emailing you a service description for" +  serviceName
+    else:
+        return "Please go to your mail and verify your email address so we can email you the service description"
 
 # --------------- Main handler ------------------
 
