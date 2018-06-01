@@ -80,7 +80,7 @@ def emailServiceDescription(event, context):
         return continue_dialog()
 
     elif dialog_state == "COMPLETED":
-        if 'service' in intent['slots']:
+        if 'service' in event['request']['intent']['slots']:
             service_name = intent['slots']['service']['value']
             push_sns(event)
             return statement("emailServiceDescription", "I'm emailing you the service description for" + service_name)
