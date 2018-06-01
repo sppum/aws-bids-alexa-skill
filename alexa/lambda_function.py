@@ -64,8 +64,6 @@ def continue_dialog():
 
 def push_sns(event):
     snsTopic = os.environ.get('SNS_TOPIC')
-    print('###############################################')
-    print(snsTopic)
     sns = boto3.client('sns')
     response = sns.publish(
         TopicArn=snsTopic,
@@ -78,6 +76,8 @@ def push_sns(event):
 ##############################
 
 def emailServiceDescription(event, context):
+    print('############################')
+        
     dialog_state = event['request']['dialogState']
 
     if dialog_state in ("STARTED", "IN_PROGRESS"):
@@ -112,17 +112,12 @@ def stop_intent():
     return statement("StopIntent", "You want to stop")		#here also don't use StopIntent
 
 
-def not_linked_intent():
-    return statement("NotLinked", "Your user details are not available at this time.  Have you completed account linking via the Alexa app?")		#here also don't use StopIntent
-
 ##############################
 # On Launch
 ##############################
 
 
 def on_launch(event, context):
-    if event['session']['user']['accessToken'] is None:
-        return not_linked_intent()
     return statement("title", "body")
 
 
@@ -158,8 +153,13 @@ def intent_router(event, context):
 
 def lambda_handler(event, context):
     print(event)
+    try:
+        access_token = event['context']['System']['user']['accessToken']
+    except:
+        return statement("NotLinked", "Your user details are not available at this time.  Have you completed account linking via the Alexa app?")		#here also don't use StopIntent
     if event['request']['type'] == "LaunchRequest":
         return on_launch(event, context)
 
     elif event['request']['type'] == "IntentRequest":
         return intent_router(event, context)
+
