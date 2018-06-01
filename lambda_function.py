@@ -76,7 +76,6 @@ def handle_session_end_request():
 
 
 def get_user_info(access_token):
-    #print access_token
     amazonProfileURL = 'https://api.amazon.com/user/profile?access_token='
     r = requests.get(url=amazonProfileURL+access_token)
     if r.status_code == 200:
@@ -96,8 +95,9 @@ def sendServiceDescription(event, intent, session):
         service_name = intent['slots']['service']['value']
         emailProfile = get_user_info(event['session']['user']['accessToken'])['email']
         service = findService(service_name)
+        html = requests.get(service['serviceUrl']).text
         createPdf(service['serviceUrl'])
-        resultResponse = sendEmail(service['serviceName'], emailProfile)
+        resultResponse = sendEmail(service['serviceUrl'], service['serviceName'], emailProfile)
         speech_output = "I'm emailing you a service description for  " + \
                         service_name
         reprompt_text = "You can ask me to email you a service description by saying, " \
@@ -201,17 +201,28 @@ def verifyEmail(email):
         )
         return True
 
-def sendEmail(serviceName, emailAddress):
+
+def getAllParagraphs(url):
+    soup = BeautifulSoup(url, 'html.parser')
+    paragraphs = []
+    content = soup.find(role='main')
+    for paragraph in content.find_all('p'):
+        if paragraph is not None:
+            paragraphs.append(paragraph.text.strip())
+    return paragraphs
+
+
+def sendEmail(serviceUrl, serviceName, emailAddress):
     client = boto3.client('ses')
     if verifyEmail(emailAddress) == None:
         msg = MIMEMultipart()
-        msg['Subject'] = 'Test'
+        msg['Subject'] = 'Here is the service description for ' + serviceName
         msg['From'] = emailAddress
         msg['To'] = emailAddress
 
         msg.preamble = 'Multipart message.\n'
 
-        part = MIMEText('Here is the service description for ' + serviceName)
+        part = MIMEText('Service description: %r ' % getAllParagraphs(requests.get(serviceUrl).text)[0:2])
         msg.attach(part)
 
         part = MIMEApplication(open('/tmp/service_description.pdf', 'rb').read())
