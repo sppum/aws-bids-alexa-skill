@@ -1,0 +1,13 @@
+
+version: 0.1
+phases:
+  install:
+    commands:
+      - pip install -r requirements.txt -t .
+      - aws cloudformation package --template-file samTemplate.yaml --s3-bucket aws-bids-alexa-pipeline-codepipelinebucket-1vwh6idvuy0he
+                                   --output-template-file outputSamTemplate.yaml
+artifacts:
+  type: zip
+  files:
+    - samTemplate.yaml
+    - outputSamTemplate.yaml
