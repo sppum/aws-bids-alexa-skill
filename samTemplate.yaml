@@ -11,6 +11,9 @@ Resources:
       Timeout: 300
       Policies:
       - AmazonSNSFullAccess
+      Environment:
+        Variables:
+          SNS_TOPIC: !Ref awsBidsAlexaSns
 
   awsBidsAlexaSkill:
     Type: AWS::Serverless::Function
