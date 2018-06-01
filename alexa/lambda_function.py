@@ -76,12 +76,12 @@ def verifyEmail(email):
     client = boto3.client('ses')
     response = client.list_verified_email_addresses()
     if email in response['VerifiedEmailAddresses']:
-        return None
+        return True
     else:
         response = client.verify_email_address(
             EmailAddress=email,
         )
-        return True
+        return None
         
         
 def get_user_info(access_token):
@@ -174,8 +174,6 @@ def intent_router(event, context):
 
 def lambda_handler(event, context):
     print(event)
-    emailAddress = get_user_info(event['context']['System']['user']['accessToken'])['email']
-    print(verifyEmail(emailAddress))
     try:
         emailAddress = get_user_info(event['context']['System']['user']['accessToken'])['email']
         if not verifyEmail(emailAddress):
@@ -187,5 +185,6 @@ def lambda_handler(event, context):
 
     elif event['request']['type'] == "IntentRequest":
         return intent_router(event, context)
+
 
 
