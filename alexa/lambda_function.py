@@ -13,6 +13,8 @@ import boto3
 from email.mime.text import MIMEText
 from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
+import os
+import json
 
 response = requests.get('https://aws.amazon.com/products/').text
 
@@ -83,6 +85,16 @@ def get_user_info(access_token):
     else:
         return False
 
+def push_sns(event):
+    snsTopic = os.environ.get('SNS_TOPIC')
+    print('###############################################')
+    print(snsTopic)
+    sns = boto3.client('sns')
+    response = sns.publish(
+        TopicArn=snsTopic,
+        Message=json.dumps(event)
+    )
+
 def sendServiceDescription(event, intent, session):
     """ Emails a service description to a user.
     """
@@ -93,11 +105,12 @@ def sendServiceDescription(event, intent, session):
 
     if 'service' in intent['slots']:
         service_name = intent['slots']['service']['value']
-        emailProfile = get_user_info(event['session']['user']['accessToken'])['email']
-        service = findService(service_name)
-        html = requests.get(service['serviceUrl']).text
-        createPdf(service['serviceUrl'])
-        resultResponse = sendEmail(service['serviceUrl'], service['serviceName'], emailProfile)
+        push_sns(event)
+        #emailProfile = get_user_info(event['session']['user']['accessToken'])['email']
+        #service = findService(service_name)
+        #html = requests.get(service['serviceUrl']).text
+        #createPdf(service['serviceUrl'])
+        #resultResponse = sendEmail(service['serviceUrl'], service['serviceName'], emailProfile)
         speech_output = "I'm emailing you a service description for  " + \
                         service_name
         reprompt_text = "You can ask me to email you a service description by saying, " \
