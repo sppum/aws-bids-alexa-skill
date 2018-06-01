@@ -1,4 +1,6 @@
 import boto3
+import os
+import json
 
 ##############################
 # Builders
@@ -83,9 +85,9 @@ def emailServiceDescription(event, context):
 
     elif dialog_state == "COMPLETED":
         if 'service' in event['request']['intent']['slots']:
-            service_name = intent['slots']['service']['value']
+            service_name = event['request']['intent']['slots']['service']['value']
             push_sns(event)
-            return statement("emailServiceDescription", "I'm emailing you the service description for" + service_name)
+            return statement("emailServiceDescription", "I'm emailing you the service description for " + service_name)
         else:
             return statement("emailServiceDescription", "Please tell me which service you would like to get the service description for.")
 
