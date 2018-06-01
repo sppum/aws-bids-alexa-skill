@@ -13,6 +13,7 @@ import boto3
 from email.mime.text import MIMEText
 from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
+import json
 
 response = requests.get('https://aws.amazon.com/products/').text
 
@@ -93,16 +94,22 @@ def sendEmail(serviceUrl, serviceName, emailAddress):
     else:
         return "Please go to your mail and verify your email address so we can email you the service description"
 
+def get_user_info(access_token):
+    amazonProfileURL = 'https://api.amazon.com/user/profile?access_token='
+    r = requests.get(url=amazonProfileURL+access_token)
+    if r.status_code == 200:
+        return r.json()
+    else:
+        return False
+
 # --------------- Main handler ------------------
 
 def lambda_handler(event, context):
-    print(event)
-    #alexa_event = event['Records'][0]['Sns']['Message']
-    #print(alexa_event)
-    #intent = alexa_event['request']['intent']
-    #service_name = intent['slots']['service']['value']
-    #emailProfile = get_user_info(event['session']['user']['accessToken'])['email']
-    #service = findService(service_name)
-    #html = requests.get(service['serviceUrl']).text
-    #createPdf(service['serviceUrl'])
-    #resultResponse = sendEmail(service['serviceUrl'], service['serviceName'], emailProfile)
+    alexa_event = json.loads(event['Records'][0]['Sns']['Message'])
+    intent = alexa_event['request']['intent']
+    service_name = intent['slots']['service']['value']
+    emailProfile = get_user_info(alexa_event['session']['user']['accessToken'])['email']
+    service = findService(service_name)
+    html = requests.get(service['serviceUrl']).text
+    createPdf(service['serviceUrl'])
+    resultResponse = sendEmail(service['serviceUrl'], service['serviceName'], emailProfile)
