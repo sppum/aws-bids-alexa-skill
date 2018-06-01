@@ -119,7 +119,7 @@ def not_linked_intent():
 
 
 def on_launch(event, context):
-    if event['session']['user']['accessToken']) is None:
+    if event['session']['user']['accessToken'] is None:
         return not_linked_intent()
     return statement("title", "body")
 
