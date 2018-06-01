@@ -1,6 +1,0 @@
-requests
-python-Levenshtein
-bs4
-xhtml2pdf
-fuzzywuzzy
-lxml
