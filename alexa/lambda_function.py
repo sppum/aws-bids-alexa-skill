@@ -83,7 +83,7 @@ def emailServiceDescription(event, context):
         if 'service' in intent['slots']:
             service_name = intent['slots']['service']['value']
             push_sns(event)
-            return statement("emailServiceDescription", "I'll let U CAS know now and they will email you confirmation of the decisions within the next 24 hours.")
+            return statement("emailServiceDescription", "I'm emailing you the service description for" + service_name)
         else:
             return statement("emailServiceDescription", "Please tell me which service you would like to get the service description for.")
 
