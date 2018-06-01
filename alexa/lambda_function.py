@@ -175,6 +175,7 @@ def intent_router(event, context):
 def lambda_handler(event, context):
     print(event)
     emailAddress = get_user_info(event['context']['System']['user']['accessToken'])['email']
+    print(verifyEmail(emailAddress))
     try:
         emailAddress = get_user_info(event['context']['System']['user']['accessToken'])['email']
         if not verifyEmail(emailAddress):
@@ -186,4 +187,5 @@ def lambda_handler(event, context):
 
     elif event['request']['type'] == "IntentRequest":
         return intent_router(event, context)
+
 

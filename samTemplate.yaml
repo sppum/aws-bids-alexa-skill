@@ -10,6 +10,7 @@ Resources:
       CodeUri: alexa/
       Timeout: 300
       Policies:
+      - AmazonSESFullAccess
       - AmazonSNSFullAccess
       Environment:
         Variables:
@@ -24,7 +25,6 @@ Resources:
       Timeout: 300
       Policies:
       - AmazonSESFullAccess
-      - AmazonSNSFullAccess
       Events:
         SNS:
           Type: SNS
