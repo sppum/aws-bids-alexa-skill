@@ -15,7 +15,7 @@ Resources:
         Variables:
           SNS_TOPIC: !Ref awsBidsAlexaSns
 
-  awsBidsAlexaSkill:
+  awsBidsEmailerSkill:
     Type: AWS::Serverless::Function
     Properties:
       Handler: lambda_function.lambda_handler
