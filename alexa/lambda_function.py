@@ -1,6 +1,7 @@
 import boto3
 import os
 import json
+import requests
 
 ##############################
 # Builders
@@ -70,6 +71,26 @@ def push_sns(event):
         Message=json.dumps(event)
     )
 
+
+def verifyEmail(email):
+    client = boto3.client('ses')
+    response = client.list_verified_email_addresses()
+    if email in response['VerifiedEmailAddresses']:
+        return None
+    else:
+        response = client.verify_email_address(
+            EmailAddress=email,
+        )
+        return True
+        
+        
+def get_user_info(access_token):
+    amazonProfileURL = 'https://api.amazon.com/user/profile?access_token='
+    r = requests.get(url=amazonProfileURL+access_token)
+    if r.status_code == 200:
+        return r.json()
+    else:
+        return False
 
 ##############################
 # Custom Intents
@@ -153,8 +174,11 @@ def intent_router(event, context):
 
 def lambda_handler(event, context):
     print(event)
+    emailAddress = get_user_info(event['context']['System']['user']['accessToken'])['email']
     try:
-        access_token = event['context']['System']['user']['accessToken']
+        emailAddress = get_user_info(event['context']['System']['user']['accessToken'])['email']
+        if not verifyEmail(emailAddress):
+            return statement("EmailNotVerified", "Please check your email to verify your email address before we can send you any details.")		#here also don't use StopIntent
     except:
         return statement("NotLinked", "Your user details are not available at this time.  Have you completed account linking via the Alexa app?")		#here also don't use StopIntent
     if event['request']['type'] == "LaunchRequest":
