@@ -2,7 +2,7 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: Grabs services description
 Resources:
-  aws-bids-alexa-skill:
+  awsBidsAlexaSkill:
     Type: AWS::Serverless::Function
     Properties:
       Handler: lambda_function.lambda_handler
