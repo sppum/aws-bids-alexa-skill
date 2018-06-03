@@ -38,24 +38,28 @@ Resources:
       DisplayName: AWS Bids Alexa Topic
       TopicName: awsBidsAlexaSns
 
+  bidsServicesTable:
+    Type: 'AWS::DynamoDB::Table'
+    Properties:
+      AttributeDefinitions:
+        -
+          AttributeName: 'ServiceName'
+          AttributeType: 'S'
+      KeySchema:
+        -
+          AttributeName: "ServiceName"
+          KeyType: "HASH"
+      ProvisionedThroughput:
+        ReadCapacityUnits: "5"
+        WriteCapacityUnits: "5"
+      TableName: "bidsServicesTable"
+
   bidsLoginTable:
     Type: "AWS::DynamoDB::Table"
     Properties:
       AttributeDefinitions:
         -
           AttributeName: "Organisation"
-          AttributeType: "S"
-        -
-          AttributeName: "Url"
-          AttributeType: "S"
-        -
-          AttributeName: "Username"
-          AttributeType: "S"
-        -
-          AttributeName: "Password"
-          AttributeType: "S"
-        -
-          AttributeName: "Region"
           AttributeType: "S"
       KeySchema:
         -

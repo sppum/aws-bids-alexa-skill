@@ -14,6 +14,7 @@ from email.mime.text import MIMEText
 from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 import json
+import hashlib
 
 response = requests.get('https://aws.amazon.com/products/').text
 
@@ -74,6 +75,13 @@ def getAllParagraphs(url):
         if paragraph is not None:
             paragraphs.append(paragraph.text.strip())
     return paragraphs
+
+
+def getUrlDigest(url):
+    m = hashlib.md5()
+    m.update(url.content)
+    digest = m.hexdigest()
+    return digest
 
 
 def sendEmail(serviceUrl, serviceName, emailAddress):
