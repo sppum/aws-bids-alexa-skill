@@ -14,7 +14,8 @@ Resources:
       - AmazonSNSFullAccess
       Environment:
         Variables:
-          SNS_TOPIC: !Ref awsBidsAlexaSns
+          SNS_EMAIL_TOPIC: !Ref awsBidsAlexaSns
+          SNS_COMPLIANCE_TOPIC: !Ref awsBidsComplianceSns
           DYNAMODB_TABLE: !Ref bidsLoginTable
 
   awsBidsEmailerSkill:
@@ -31,6 +32,12 @@ Resources:
           Type: SNS
           Properties:
             Topic: !Ref awsBidsAlexaSns
+
+  awsBidsComplianceSns:
+    Type: "AWS::SNS::Topic"
+    Properties: 
+      DisplayName: AWS Bids Compliance Topic
+      TopicName: awsBidsComplianceSns
 
   awsBidsAlexaSns:
     Type: "AWS::SNS::Topic"
