@@ -32,6 +32,7 @@
                         "send me a a copy of the service description for {service}",
                         "email me a a copy of the service description for {service}",
                         "send me the service description for {service}",
+												"send me {service}",
                         "email me a service description for {service}"
                     ]
                 }
