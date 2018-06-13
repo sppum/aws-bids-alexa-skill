@@ -113,7 +113,7 @@ def get_user_info(access_token):
 
 def emailServiceDescription(event, context):
     print('############################')
-    snsTopic = os.environ.get('SNS_TOPIC')
+    snsTopic = os.environ.get('SNS_EMAIL_TOPIC')
         
     dialog_state = event['request']['dialogState']
 
@@ -139,18 +139,19 @@ def emailServiceDescription(event, context):
 
 def emailComplianceReport(event, context):
         
+    snsTopic = os.environ.get('SNS_COMPLIANCE_TOPIC')
     dialog_state = event['request']['dialogState']
 
     if dialog_state in ("STARTED", "IN_PROGRESS"):
         return continue_dialog()
 
     elif dialog_state == "COMPLETED":
-        if 'service' in event['request']['intent']['slots']:
-            service_name = event['request']['intent']['slots']['service']['value']
+        if 'compliance' in event['request']['intent']['slots']:
+            compliance_name = event['request']['intent']['slots']['service']['value']
             push_sns(event)
-            return statement("emailServiceDescription", "I'm emailing you the service description for " + service_name)
+            return statement("emailComplianceReport", "I'm emailing you the complaince report for " + compliance_name)
         else:
-            return statement("emailServiceDescription", "Please tell me which service you would like to get the service description for.")
+            return statement("emailComplianceReport", "Please tell me which service you would like to get the compliance report for.")
 
     else:
         return statement("emailServiceDescription", "No dialog")
@@ -196,6 +197,8 @@ def intent_router(event, context):
 
     if intent == 'emailServiceDescription':
         return emailServiceDescription(event, context)
+    if intent == 'emailComplianceReport':
+        return emailComplianceReport(event, context)
 
     # Required Intents
 
