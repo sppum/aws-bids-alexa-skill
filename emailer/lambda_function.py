@@ -14,28 +14,35 @@ from email.mime.text import MIMEText
 from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 import json
+import hashlib
 
 response = requests.get('https://aws.amazon.com/products/').text
 
+
 def getServiceList():
-    soup = BeautifulSoup(response, "html.parser")
+    soup = BeautifulSoup(response, 'html.parser')
     serviceList = []
-    for service in soup.find_all(class_="lb-content-item"):
+    for service in soup.find_all(class_='lb-content-item'):
         serviceUrl = service.a['href']
-        serviceName = service.a.contents[0]
-        serviceList.append({'serviceName': serviceName, 'serviceUrl': 'https://aws.amazon.com' + serviceUrl })
+        serviceName = service.a.contents[0].strip()
+        serviceList.append({'serviceName': serviceName,
+                            'serviceUrl': 'https://aws.amazon.com'
+                            + serviceUrl})
     return serviceList
+
 
 def getServiceDescription(serviceUrl):
     response = requests.get(serviceUrl).text
-    soup = BeautifulSoup(response, "html.parser")
-    return soup.find("div", {"id": "aws-page-content"})
+    soup = BeautifulSoup(response, 'html.parser')
+    return soup.find('div', {'id': 'aws-page-content'})
+
 
 def createPdf(serviceUrl):
-    outputFilename = "/tmp/service_description.pdf"
-    resultFile = open(outputFilename, "w+b")
-    pisa.CreatePDF(getServiceDescription(serviceUrl).encode('utf-8'), resultFile)
-    resultFile.close()
+    outputFilename = '/tmp/service_description.pdf'
+    with open(outputFilename, 'w+b') as resultFile:
+        pisa.CreatePDF(getServiceDescription(serviceUrl).encode('utf-8'),
+                       resultFile)
+
 
 def findService(serviceName):
     confidenceList = []
@@ -43,8 +50,10 @@ def findService(serviceName):
     for service in serviceList:
         service.update({'ratio': fuzz.ratio(service, serviceName)})
         confidenceList.append(service)
-    sortedConfidenceList = sorted(confidenceList, key=itemgetter('ratio'), reverse=True)
+    sortedConfidenceList = sorted(confidenceList,
+                                  key=itemgetter('ratio'), reverse=True)
     return sortedConfidenceList[0]
+
 
 def verifyEmail(email):
     client = boto3.client('ses')
@@ -68,9 +77,16 @@ def getAllParagraphs(url):
     return paragraphs
 
 
+def getUrlDigest(url):
+    m = hashlib.md5()
+    m.update(url.content)
+    digest = m.hexdigest()
+    return digest
+
+
 def sendEmail(serviceUrl, serviceName, emailAddress):
     client = boto3.client('ses')
-    if verifyEmail(emailAddress) == None:
+    if verifyEmail(emailAddress) is None:
         msg = MIMEMultipart()
         msg['Subject'] = 'Here is the service description for ' + serviceName
         msg['From'] = emailAddress
@@ -78,21 +94,25 @@ def sendEmail(serviceUrl, serviceName, emailAddress):
 
         msg.preamble = 'Multipart message.\n'
 
-        part = MIMEText('Service description: %r ' % getAllParagraphs(requests.get(serviceUrl).text)[0:2])
+        part = MIMEText('Service description: %r ' %
+                        getAllParagraphs(requests.get(serviceUrl).text)[0:2])
         msg.attach(part)
 
-        part = MIMEApplication(open('/tmp/service_description.pdf', 'rb').read())
-        part.add_header('Content-Disposition', 'attachment', filename='service_description.pdf')
+        part = MIMEApplication(open('/tmp/service_description.pdf',
+                                    'rb').read())
+        part.add_header('Content-Disposition', 'attachment',
+                        filename='service_description.pdf')
         msg.attach(part)
 
         result = client.send_raw_email(RawMessage={
             'Data': msg.as_string()
-            }
-            , Source=msg['From'])
+            },
+            Source=msg['From'])
         print(result)
-        return "I'm emailing you a service description for" +  serviceName
+        return "I'm emailing you a service description for " + serviceName
     else:
-        return "Please go to your mail and verify your email address so we can email you the service description"
+        return 'Please go to your mail and verify your email address so we can email you the service description'
+
 
 def get_user_info(access_token):
     amazonProfileURL = 'https://api.amazon.com/user/profile?access_token='
@@ -103,6 +123,7 @@ def get_user_info(access_token):
         return False
 
 # --------------- Main handler ------------------
+
 
 def lambda_handler(event, context):
     print(event)

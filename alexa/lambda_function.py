@@ -31,9 +31,23 @@ def build_SimpleCard(title, body):
     return card
 
 
+def build_LinkAccount(body):
+    card = {}
+    card['title'] = 'Link Account'
+    card['type'] = 'LinkAccount'
+    return card
+
 ##############################
 # Responses
 ##############################
+
+
+def linkaccount(title, body):
+    speechlet = {}
+    speechlet['outputSpeech'] = build_PlainSpeech(body)
+    speechlet['card'] = build_LinkAccount(body)
+    speechlet['shouldEndSession'] = True
+    return build_response(speechlet)
 
 
 def conversation(title, body, session_attributes):
@@ -70,6 +84,7 @@ def push_sns(event):
         TopicArn=snsTopic,
         Message=json.dumps(event)
     )
+    return response
 
 
 def verifyEmail(email):
@@ -82,8 +97,8 @@ def verifyEmail(email):
             EmailAddress=email,
         )
         return None
-        
-        
+
+
 def get_user_info(access_token):
     amazonProfileURL = 'https://api.amazon.com/user/profile?access_token='
     r = requests.get(url=amazonProfileURL+access_token)
@@ -96,24 +111,27 @@ def get_user_info(access_token):
 # Custom Intents
 ##############################
 
+
 def emailServiceDescription(event, context):
     print('############################')
-        
     dialog_state = event['request']['dialogState']
 
-    if dialog_state in ("STARTED", "IN_PROGRESS"):
+    if dialog_state in ('STARTED', 'IN_PROGRESS'):
         return continue_dialog()
 
-    elif dialog_state == "COMPLETED":
+    elif dialog_state == 'COMPLETED':
         if 'service' in event['request']['intent']['slots']:
             service_name = event['request']['intent']['slots']['service']['value']
-            push_sns(event)
-            return statement("emailServiceDescription", "I'm emailing you the service description for " + service_name)
+            messageid = push_sns(event)
+            return statement('emailServiceDescription',
+                             "I'm emailing you the service description for "
+                             + service_name)
         else:
-            return statement("emailServiceDescription", "Please tell me which service you would like to get the service description for.")
+            return statement('emailServiceDescription',
+                             'Please tell me which service you would like to get the service description for.')
 
     else:
-        return statement("emailServiceDescription", "No dialog")
+        return statement('emailServiceDescription', 'No dialog')
 
 
 ##############################
@@ -122,15 +140,18 @@ def emailServiceDescription(event, context):
 
 
 def cancel_intent():
-    return statement("CancelIntent", "You want to cancel")	#don't use CancelIntent as title it causes code reference error during certification 
+    return statement('CancelIntent', 'You want to cancel')
+    # don't use CancelIntent as title it causes code reference error during certification
 
 
 def help_intent():
-    return statement("CancelIntent", "You want help")		#same here don't use CancelIntent
+    return statement('CancelIntent', 'You want help')
+    # Same here don't use CancelIntent
 
 
 def stop_intent():
-    return statement("StopIntent", "You want to stop")		#here also don't use StopIntent
+    return statement('StopIntent', 'You want to stop')
+    # Here also don't use StopIntent
 
 
 ##############################
@@ -139,7 +160,7 @@ def stop_intent():
 
 
 def on_launch(event, context):
-    return statement("title", "body")
+    return statement('title', 'body')
 
 
 ##############################
@@ -152,18 +173,18 @@ def intent_router(event, context):
 
     # Custom Intents
 
-    if intent == "emailServiceDescription":
+    if intent == 'emailServiceDescription':
         return emailServiceDescription(event, context)
 
     # Required Intents
 
-    if intent == "AMAZON.CancelIntent":
+    if intent == 'AMAZON.CancelIntent':
         return cancel_intent()
 
-    if intent == "AMAZON.HelpIntent":
+    if intent == 'AMAZON.HelpIntent':
         return help_intent()
 
-    if intent == "AMAZON.StopIntent":
+    if intent == 'AMAZON.StopIntent':
         return stop_intent()
 
 
@@ -177,14 +198,13 @@ def lambda_handler(event, context):
     try:
         emailAddress = get_user_info(event['context']['System']['user']['accessToken'])['email']
         if not verifyEmail(emailAddress):
-            return statement("EmailNotVerified", "Please check your email to verify your email address before we can send you any details.")		#here also don't use StopIntent
-    except:
-        return statement("NotLinked", "Your user details are not available at this time.  Have you completed account linking via the Alexa app?")		#here also don't use StopIntent
-    if event['request']['type'] == "LaunchRequest":
+            return statement('EmailNotVerified',
+                             'Please check your email to verify your email address before we can send you any details.')		#here also don't use StopIntent
+
+    except Exception as err:
+        return linkaccount('NotLinked',
+                         'Your user details are not available at this time.  Have you completed account linking via the Alexa app?')		#here also don't use StopIntent if event['request']['type'] == "LaunchRequest":
         return on_launch(event, context)
 
-    elif event['request']['type'] == "IntentRequest":
+    if event['request']['type'] == 'IntentRequest':
         return intent_router(event, context)
-
-
-
