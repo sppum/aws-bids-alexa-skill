@@ -31,9 +31,23 @@ def build_SimpleCard(title, body):
     return card
 
 
+def build_LinkAccount(body):
+    card = {}
+    card['title'] = 'Link Account'
+    card['type'] = 'LinkAccount'
+    return card
+
 ##############################
 # Responses
 ##############################
+
+
+def linkaccount(title, body):
+    speechlet = {}
+    speechlet['outputSpeech'] = build_PlainSpeech(body)
+    speechlet['card'] = build_LinkAccount(body)
+    speechlet['shouldEndSession'] = True
+    return build_response(speechlet)
 
 
 def conversation(title, body, session_attributes):
@@ -188,7 +202,7 @@ def lambda_handler(event, context):
                              'Please check your email to verify your email address before we can send you any details.')		#here also don't use StopIntent
 
     except Exception as err:
-        return statement('NotLinked',
+        return linkaccount('NotLinked',
                          'Your user details are not available at this time.  Have you completed account linking via the Alexa app?')		#here also don't use StopIntent if event['request']['type'] == "LaunchRequest":
         return on_launch(event, context)
 
