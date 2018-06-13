@@ -147,7 +147,7 @@ def emailComplianceReport(event, context):
 
     elif dialog_state == "COMPLETED":
         if 'compliance' in event['request']['intent']['slots']:
-            compliance_name = event['request']['intent']['slots']['service']['value']
+            compliance_name = event['request']['intent']['slots']['compliance']['value']
             push_sns(event)
             return statement("emailComplianceReport", "I'm emailing you the complaince report for " + compliance_name)
         else:
