@@ -105,8 +105,11 @@ def get_user_info(access_token):
 # --------------- Main handler ------------------
 
 def lambda_handler(event, context):
+    print(event)
     alexa_event = json.loads(event['Records'][0]['Sns']['Message'])
+    print(alexa_event)
     intent = alexa_event['request']['intent']
+    print(intent)
     service_name = intent['slots']['service']['value']
     emailProfile = get_user_info(alexa_event['session']['user']['accessToken'])['email']
     service = findService(service_name)

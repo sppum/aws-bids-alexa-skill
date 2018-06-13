@@ -1,0 +1,99 @@
+{
+    "interactionModel": {
+        "languageModel": {
+            "invocationName": "bid support",
+            "intents": [
+                {
+                    "name": "AMAZON.CancelIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.HelpIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.StopIntent",
+                    "samples": []
+                },
+                {
+                    "name": "emailServiceDescription",
+                    "slots": [
+                        {
+                            "name": "service",
+                            "type": "service",
+                            "samples": [
+                                "workspaces"
+                            ]
+                        }
+                    ],
+                    "samples": [
+                        "provide me the service description for {service}",
+                        "email me the service description for {service}",
+                        "send me a a copy of the service description for {service}",
+                        "email me a a copy of the service description for {service}",
+                        "send me the service description for {service}",
+                        "email me a service description for {service}"
+                    ]
+                }
+            ],
+            "types": [
+                {
+                    "name": "service",
+                    "values": [
+                        {
+                            "name": {
+                                "value": "workspaces"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "e c two"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "dialog": {
+            "intents": [
+                {
+                    "name": "emailServiceDescription",
+                    "confirmationRequired": false,
+                    "prompts": {},
+                    "slots": [
+                        {
+                            "name": "service",
+                            "type": "service",
+                            "confirmationRequired": true,
+                            "elicitationRequired": true,
+                            "prompts": {
+                                "confirmation": "Confirm.Slot.830550311211.406090130410",
+                                "elicitation": "Elicit.Slot.112845554982.899278332169"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "prompts": [
+            {
+                "id": "Elicit.Slot.112845554982.899278332169",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "Please tell me which service you want the service description for?"
+                    }
+                ]
+            },
+            {
+                "id": "Confirm.Slot.830550311211.406090130410",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "Are you looking for {service}"
+                    }
+                ]
+            }
+        ]
+    }
+}
