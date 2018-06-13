@@ -33,6 +33,7 @@ Resources:
           Properties:
             Topic: !Ref awsBidsAlexaSns
 
+
   awsBidsComplianceSns:
     Type: "AWS::SNS::Topic"
     Properties: 
