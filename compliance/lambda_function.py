@@ -16,9 +16,16 @@ from email.mime.multipart import MIMEMultipart
 import json
 import hashlib
 import re
+import os
 
 response = requests.get('https://aws.amazon.com/products/').text
+complianceBucket = os.environ.get('COMPLIANCE_BUCKETNAME')
 
+def getFiles(compliance_name):
+    s3 = boto3.resource('s3')
+    if compliance_name == '27001':
+        s3.Bucket(complianceBucket).download_file('iso_27001_global_certification.pdf', '/tmp/iso_27001_global_certification.pdf')
+        return '/tmp/iso_27001_global_certification.pdf'
 
 #def getServiceList():
 #    soup = BeautifulSoup(response, 'html.parser')
@@ -56,16 +63,16 @@ response = requests.get('https://aws.amazon.com/products/').text
 #    return sortedConfidenceList[0]
 #
 #
-#def verifyEmail(email):
-#    client = boto3.client('ses')
-#    response = client.list_verified_email_addresses()
-#    if email in response['VerifiedEmailAddresses']:
-#        return None
-#    else:
-#        response = client.verify_email_address(
-#            EmailAddress=email,
-#        )
-#        return True
+def verifyEmail(email):
+    client = boto3.client('ses')
+    response = client.list_verified_email_addresses()
+    if email in response['VerifiedEmailAddresses']:
+        return None
+    else:
+        response = client.verify_email_address(
+            EmailAddress=email,
+        )
+        return True
 #
 #
 #def getAllParagraphs(url):
@@ -85,43 +92,43 @@ response = requests.get('https://aws.amazon.com/products/').text
 #    return digest
 #
 #
-#def sendEmail(serviceUrl, serviceName, emailAddress):
-#    client = boto3.client('ses')
-#    if verifyEmail(emailAddress) is None:
-#        msg = MIMEMultipart()
-#        msg['Subject'] = 'Here is the service description for ' + serviceName
-#        msg['From'] = emailAddress
-#        msg['To'] = emailAddress
+def sendEmail(compliance_name, emailAddress):
+    client = boto3.client('ses')
+    if verifyEmail(emailAddress) is None:
+        msg = MIMEMultipart()
+        msg['Subject'] = 'Here is the compliance report for ' + compliance_name
+        msg['From'] = emailAddress
+        msg['To'] = emailAddress
+
+        msg.preamble = 'Multipart message.\n'
+
+        part = MIMEText('Compliance Report for: ' + compliance_name)
+        msg.attach(part)
+
+        complianceReportFile = getFiles(compliance_name)
+        part = MIMEApplication(open(complianceReportFile,
+                                    'rb').read())
+        part.add_header('Content-Disposition', 'attachment',
+                        filename='compliance_report.pdf')
+        msg.attach(part)
+
+        result = client.send_raw_email(RawMessage={
+            'Data': msg.as_string()
+            },
+            Source=msg['From'])
+        print(result)
+        return "I'm emailing you a compliance for " + compliance_name
+    else:
+        return 'Please go to your mail and verify your email address so we can email you the complaince report'
 #
-#        msg.preamble = 'Multipart message.\n'
 #
-#        part = MIMEText('Service description: %r ' %
-#                        getAllParagraphs(requests.get(serviceUrl).text)[0:2])
-#        msg.attach(part)
-#
-#        part = MIMEApplication(open('/tmp/service_description.pdf',
-#                                    'rb').read())
-#        part.add_header('Content-Disposition', 'attachment',
-#                        filename='service_description.pdf')
-#        msg.attach(part)
-#
-#        result = client.send_raw_email(RawMessage={
-#            'Data': msg.as_string()
-#            },
-#            Source=msg['From'])
-#        print(result)
-#        return "I'm emailing you a service description for " + serviceName
-#    else:
-#        return 'Please go to your mail and verify your email address so we can email you the service description'
-#
-#
-#def get_user_info(access_token):
-#    amazonProfileURL = 'https://api.amazon.com/user/profile?access_token='
-#    r = requests.get(url=amazonProfileURL+access_token)
-#    if r.status_code == 200:
-#        return r.json()
-#    else:
-#        return False
+def get_user_info(access_token):
+    amazonProfileURL = 'https://api.amazon.com/user/profile?access_token='
+    r = requests.get(url=amazonProfileURL+access_token)
+    if r.status_code == 200:
+        return r.json()
+    else:
+        return False
 
 # --------------- Main handler ------------------
 
@@ -132,8 +139,8 @@ def lambda_handler(event, context):
     intent = alexa_event['request']['intent']
     #print(intent)
     compliance_name = re.sub(',', '', intent['slots']['compliance']['value'])
-    print(compliance_name)
-    #emailProfile = get_user_info(alexa_event['session']['user']['accessToken'])['email']
+    emailProfile = get_user_info(alexa_event['session']['user']['accessToken'])['email']
+    sendEmail(compliance_name, emailProfile)
     #service = findService(service_name)
     #html = requests.get(service['serviceUrl']).text
     #createPdf(service['serviceUrl'])
