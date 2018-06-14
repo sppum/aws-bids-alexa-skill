@@ -40,6 +40,8 @@ Resources:
       Runtime: python3.6
       CodeUri: compliance/
       Timeout: 300
+      Policies:
+      - AmazonS3FullAccess
       Events:
         SNS:
           Type: SNS
