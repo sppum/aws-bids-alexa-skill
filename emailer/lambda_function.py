@@ -132,7 +132,8 @@ def lambda_handler(event, context):
     intent = alexa_event['request']['intent']
     print(intent)
     service_name = intent['slots']['service']['value']
-    emailProfile = get_user_info(alexa_event['session']['user']['accessToken'])['email']
+    #emailProfile = get_user_info(alexa_event['session']['user']['accessToken'])['email']
+    emailProfile = 'cmking@gmail.com'
     service = findService(service_name)
     html = requests.get(service['serviceUrl']).text
     createPdf(service['serviceUrl'])

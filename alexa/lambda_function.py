@@ -203,8 +203,9 @@ def lambda_handler(event, context):
 
     except Exception as err:
         return linkaccount('NotLinked',
-                         'Your user details are not available at this time.  Have you completed account linking via the Alexa app?')		#here also don't use StopIntent if event['request']['type'] == "LaunchRequest":
-        return on_launch(event, context)
+                         'Your user details are not available at this time.  Have you completed account linking via the Alexa app?')
+        #here also don't use StopIntent if event['request']['type'] == "LaunchRequest":
+        #return on_launch(event, context)
 
     if event['request']['type'] == 'IntentRequest':
         return intent_router(event, context)
