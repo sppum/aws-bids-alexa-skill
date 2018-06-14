@@ -142,20 +142,44 @@ def emailComplianceReport(event, context):
     snsTopic = os.environ.get('SNS_COMPLIANCE_TOPIC')
     dialog_state = event['request']['dialogState']
 
-    if dialog_state in ("STARTED", "IN_PROGRESS"):
+    if dialog_state in ('STARTED', 'IN_PROGRESS'):
         return continue_dialog()
 
-    elif dialog_state == "COMPLETED":
+    elif dialog_state == 'COMPLETED':
         if 'compliance' in event['request']['intent']['slots']:
             compliance_name = event['request']['intent']['slots']['compliance']['value']
-            push_sns(event)
-            return statement("emailComplianceReport", "I'm emailing you the complaince report for " + compliance_name)
+            push_sns(event, snsTopic)
+            return statement('emailComplianceReport',
+                             'I am emailing you the complaince report for '
+                             + compliance_name)
         else:
-            return statement("emailComplianceReport", "Please tell me which service you would like to get the compliance report for.")
+            return statement('emailComplianceReport',
+                             'Please tell me which service you would like to get the compliance report for.')
 
     else:
         return statement("emailServiceDescription", "No dialog")
 
+
+def emailTaxDetails(event, context):
+    snsTopic = os.environ.get('SNS_TAX_TOPIC')
+    dialog_state = event['request']['dialogState']
+
+    if dialog_state in ('STARTED', 'IN_PROGRESS'):
+        return continue_dialog()
+
+    elif dialog_state == 'COMPLETED':
+        if 'country' in event['request']['intent']['slots']:
+            tax_name = event['request']['intent']['slots']['country']['value']
+            push_sns(event, snsTopic)
+            return statement('emailTaxDetails',
+                             'I am emailing you the details for '
+                             + tax_name)
+        else:
+            return statement('emailTaxDetails',
+                             'Please tell me which country you would like to get the VAT rate for.')
+
+    else:
+        return statement('emailServiceDescription', 'No dialog')
 ##############################
 # Required Intents
 ##############################
@@ -199,6 +223,8 @@ def intent_router(event, context):
         return emailServiceDescription(event, context)
     if intent == 'emailComplianceReport':
         return emailComplianceReport(event, context)
+    if intent == 'emailTaxDetails':
+        return emailTaxDetails(event, context)
 
     # Required Intents
 
@@ -220,7 +246,8 @@ def intent_router(event, context):
 def lambda_handler(event, context):
     print(event)
     try:
-        emailAddress = get_user_info(event['context']['System']['user']['accessToken'])['email']
+        #emailAddress = get_user_info(event['context']['System']['user']['accessToken'])['email']
+        emailAddress = 'cmking@gmail.com'
         if not verifyEmail(emailAddress):
             return statement('EmailNotVerified',
                              'Please check your email to verify your email address before we can send you any details.')		#here also don't use StopIntent
