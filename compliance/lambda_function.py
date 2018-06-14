@@ -23,9 +23,15 @@ complianceBucket = os.environ.get('COMPLIANCE_BUCKETNAME')
 
 def getFiles(compliance_name):
     s3 = boto3.resource('s3')
-    if compliance_name == '27001':
+    if re.match(".*27001.*" compliance_name):
         s3.Bucket(complianceBucket).download_file('iso_27001_global_certification.pdf', '/tmp/iso_27001_global_certification.pdf')
         return '/tmp/iso_27001_global_certification.pdf'
+    elif re.match(".*27018.*" compliance_name):
+        s3.Bucket(complianceBucket).download_file('iso_27018_certification.pdf', '/tmp/iso_27018_certification.pdf')
+        return '/tmp/iso_27018_certification.pdf'
+    elif re.match(".*soc.*3" compliance_name, re.IGNORECASE):
+        s3.Bucket(complianceBucket).download_file('SOC_3.pdf', '/tmp/SOC_3.pdf')
+        return '/tmp/SOC_3.pdf'
 
 #def getServiceList():
 #    soup = BeautifulSoup(response, 'html.parser')
