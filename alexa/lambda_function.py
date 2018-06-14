@@ -148,8 +148,8 @@ def emailComplianceReport(event, context):
     elif dialog_state == "COMPLETED":
         if 'compliance' in event['request']['intent']['slots']:
             compliance_name = event['request']['intent']['slots']['compliance']['value']
-            push_sns(event)
-            return statement("emailComplianceReport", "I'm emailing you the complaince report for " + compliance_name)
+            push_sns(event, snsTopic)
+            return statement("emailComplianceReport", "I'm emailing you the compliance report for " + compliance_name)
         else:
             return statement("emailComplianceReport", "Please tell me which service you would like to get the compliance report for.")
 
@@ -232,3 +232,4 @@ def lambda_handler(event, context):
 
     if event['request']['type'] == 'IntentRequest':
         return intent_router(event, context)
+
