@@ -32,8 +32,22 @@
                         "send me a a copy of the service description for {service}",
                         "email me a a copy of the service description for {service}",
                         "send me the service description for {service}",
-                        "send me {service}",
                         "email me a service description for {service}"
+                    ]
+                },
+                {
+                    "name": "emailComplianceReport",
+                    "slots": [
+                        {
+                            "name": "compliance",
+                            "type": "compliance",
+                            "samples": [
+                                "{compliance}"
+                            ]
+                        }
+                    ],
+                    "samples": [
+                        "send me the compliance report for {compliance}"
                     ]
                 }
             ],
@@ -49,6 +63,31 @@
                         {
                             "name": {
                                 "value": "e c two"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "compliance",
+                    "values": [
+                        {
+                            "name": {
+                                "value": "iso 270001"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "soc 3"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "soc 1"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "soc 2"
                             }
                         }
                     ]
@@ -73,6 +112,23 @@
                             }
                         }
                     ]
+                },
+                {
+                    "name": "emailComplianceReport",
+                    "confirmationRequired": false,
+                    "prompts": {},
+                    "slots": [
+                        {
+                            "name": "compliance",
+                            "type": "compliance",
+                            "confirmationRequired": true,
+                            "elicitationRequired": true,
+                            "prompts": {
+                                "confirmation": "Confirm.Slot.1201515963959.1335666555181",
+                                "elicitation": "Elicit.Slot.1201515963959.1335666555181"
+                            }
+                        }
+                    ]
                 }
             ]
         },
@@ -92,6 +148,24 @@
                     {
                         "type": "PlainText",
                         "value": "Are you looking for {service}"
+                    }
+                ]
+            },
+            {
+                "id": "Elicit.Slot.1201515963959.1335666555181",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "Which compliance report would you like me to send"
+                    }
+                ]
+            },
+            {
+                "id": "Confirm.Slot.1201515963959.1335666555181",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "Did you want me to send a compliance report for {compliance}"
                     }
                 ]
             }
