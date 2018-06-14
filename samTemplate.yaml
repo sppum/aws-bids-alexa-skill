@@ -7,7 +7,7 @@ Resources:
     Properties:
       Handler: lambda_function.lambda_handler
       Runtime: python3.6
-      CodeUri: alexa/build/
+      CodeUri: alexa/
       Timeout: 300
       Policies:
       - AmazonSESFullAccess
@@ -24,7 +24,7 @@ Resources:
     Properties:
       Handler: lambda_function.lambda_handler
       Runtime: python3.6
-      CodeUri: emailer/build/
+      CodeUri: emailer/
       Timeout: 300
       Policies:
       - AmazonSESFullAccess
@@ -39,7 +39,7 @@ Resources:
     Properties:
       Handler: lambda_function.lambda_handler
       Runtime: python3.6
-      CodeUri: compliance/build/
+      CodeUri: compliance/
       Timeout: 300
       Events:
         SNS:
@@ -52,7 +52,7 @@ Resources:
     Properties:
       Handler: lambda_function.lambda_handler
       Runtime: python3.6
-      CodeUri: compliance_emailer/build/
+      CodeUri: compliance_emailer/
       Timeout: 300
       Policies:
       - AmazonS3FullAccess
@@ -76,7 +76,7 @@ Resources:
     Properties:
       Handler: lambda_function.lambda_handler
       Runtime: python3.6
-      CodeUri: tax/build/
+      CodeUri: tax/
       Timeout: 300
       Policies:
       - AmazonSESFullAccess
@@ -91,7 +91,7 @@ Resources:
     Properties:
       Handler: lambda_function.lambda_handler
       Runtime: python3.6
-      CodeUri: tax_emailer/build/
+      CodeUri: tax_emailer/
       Timeout: 300
       Policies:
       - AmazonS3FullAccess
