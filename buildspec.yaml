@@ -3,7 +3,7 @@ version: 0.1
 phases:
   install:
     commands:
-      - apt-get install -y zlib1g-dev lib64z1-dev lib32z1-dev
+      - apt-get install -y zlib1g-dev
       - pip install -r alexa/requirements.txt -t alexa/ 
       - pip install -r emailer/requirements.txt -t emailer/
       - pip install -r compliance_emailer/requirements.txt -t compliance_emailer/
