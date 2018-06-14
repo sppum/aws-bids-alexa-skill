@@ -15,6 +15,7 @@ from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 import json
 import hashlib
+import re
 
 response = requests.get('https://aws.amazon.com/products/').text
 
@@ -124,14 +125,14 @@ response = requests.get('https://aws.amazon.com/products/').text
 
 # --------------- Main handler ------------------
 
-
 def lambda_handler(event, context):
-    print(event)
-    #alexa_event = json.loads(event['Records'][0]['Sns']['Message'])
+    #print(event)
+    alexa_event = json.loads(event['Records'][0]['Sns']['Message'])
     #print(alexa_event)
-    #intent = alexa_event['request']['intent']
+    intent = alexa_event['request']['intent']
     #print(intent)
-    #service_name = intent['slots']['service']['value']
+    compliance_name = re.sub(',', '', intent['slots']['compliance']['value'])
+    print(compliance_name)
     #emailProfile = get_user_info(alexa_event['session']['user']['accessToken'])['email']
     #service = findService(service_name)
     #html = requests.get(service['serviceUrl']).text
