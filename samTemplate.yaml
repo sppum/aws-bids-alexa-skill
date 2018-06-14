@@ -7,14 +7,15 @@ Resources:
     Properties:
       Handler: lambda_function.lambda_handler
       Runtime: python3.6
-      CodeUri: alexa/build/
+      CodeUri: alexa/
       Timeout: 300
       Policies:
       - AmazonSESFullAccess
       - AmazonSNSFullAccess
       Environment:
         Variables:
-          SNS_TOPIC: !Ref awsBidsAlexaSns
+          SNS_EMAIL_TOPIC: !Ref awsBidsAlexaSns
+          SNS_COMPLIANCE_TOPIC: !Ref awsBidsComplianceSns
           DYNAMODB_TABLE: !Ref bidsLoginTable
 
   awsBidsEmailerSkill:
@@ -22,7 +23,7 @@ Resources:
     Properties:
       Handler: lambda_function.lambda_handler
       Runtime: python3.6
-      CodeUri: emailer/build/
+      CodeUri: emailer/
       Timeout: 300
       Policies:
       - AmazonSESFullAccess
@@ -31,6 +32,43 @@ Resources:
           Type: SNS
           Properties:
             Topic: !Ref awsBidsAlexaSns
+
+  awsBidsComplianceSkill:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: lambda_function.lambda_handler
+      Runtime: python3.6
+      CodeUri: compliance/
+      Timeout: 300
+      Events:
+        SNS:
+          Type: SNS
+          Properties:
+            Topic: !Ref awsBidsComplianceSns
+
+  awsBidsComplianceEmailerSkill:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: lambda_function.lambda_handler
+      Runtime: python3.6
+      CodeUri: compliance_emailer/
+      Timeout: 300
+      Policies:
+      - AmazonS3FullAccess
+      Events:
+        SNS:
+          Type: SNS
+          Properties:
+            Topic: !Ref awsBidsComplianceSns
+
+  ComplianceS3Bucket:
+    Type: AWS::S3::Bucket
+
+  awsBidsComplianceSns:
+    Type: "AWS::SNS::Topic"
+    Properties: 
+      DisplayName: AWS Bids Compliance Topic
+      TopicName: awsBidsComplianceSns
 
   awsBidsAlexaSns:
     Type: "AWS::SNS::Topic"
