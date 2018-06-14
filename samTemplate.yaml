@@ -46,21 +46,6 @@ Resources:
           Properties:
             Topic: !Ref awsBidsComplianceSns
 
-  awsBidsComplianceEmailerSkill:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: lambda_function.lambda_handler
-      Runtime: python3.6
-      CodeUri: compliance_emailer/
-      Timeout: 300
-      Policies:
-      - AmazonS3FullAccess
-      Events:
-        SNS:
-          Type: SNS
-          Properties:
-            Topic: !Ref awsBidsComplianceSns
-
   ComplianceS3Bucket:
     Type: AWS::S3::Bucket
 
