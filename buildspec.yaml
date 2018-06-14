@@ -6,7 +6,7 @@ phases:
       - apt-get install -y zlib1g-dev
       - pip install -r alexa/requirements.txt -t alexa/ 
       - pip install -r emailer/requirements.txt -t emailer/
-      - pip install -r compliance/requirements.txt -t compliance_emailer/
+      - pip install -r compliance/requirements.txt -t compliance/
       - aws cloudformation package --template-file samTemplate.yaml --s3-bucket aws-bids-alexa-pipeline-codepipelinebucket-1vwh6idvuy0he
                                    --output-template-file outputSamTemplate.yaml
 artifacts:
