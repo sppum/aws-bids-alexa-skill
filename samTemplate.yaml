@@ -42,11 +42,15 @@ Resources:
       Timeout: 300
       Policies:
       - AmazonS3FullAccess
+      - AmazonSESFullAccess
       Events:
         SNS:
           Type: SNS
           Properties:
             Topic: !Ref awsBidsComplianceSns
+      Environment:
+        Variables:
+          COMPLIANCE_BUCKETNAME: !Ref ComplianceS3Bucket
 
   ComplianceS3Bucket:
     Type: AWS::S3::Bucket
