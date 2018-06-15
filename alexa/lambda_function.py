@@ -114,7 +114,6 @@ def get_user_info(access_token):
 def emailServiceDescription(event, context):
     print('############################')
     snsTopic = os.environ.get('SNS_EMAIL_TOPIC')
-        
     dialog_state = event['request']['dialogState']
 
     if dialog_state in ('STARTED', 'IN_PROGRESS'):
@@ -138,7 +137,6 @@ def emailServiceDescription(event, context):
 
 
 def emailComplianceReport(event, context):
-        
     snsTopic = os.environ.get('SNS_COMPLIANCE_TOPIC')
     dialog_state = event['request']['dialogState']
 
@@ -178,9 +176,28 @@ def emailTaxDetails(event, context):
         else:
             return statement('emailTaxDetails',
                              'Please tell me which country you would like to get the VAT rate for.')
-
     else:
         return statement('emailTaxDetails', 'No dialog')
+
+
+def emailDirectors(event, context):
+    snsTopic = os.environ.get('SNS_DIRECTORS_TOPIC')
+    dialog_state = event['request']['dialogState']
+
+    if dialog_state in ('STARTED', 'IN_PROGRESS'):
+        return continue_dialog()
+
+    elif dialog_state == 'COMPLETED':
+        group_name = 'PLACEHOLDER'
+        response = push_sns(event, snsTopic)
+        print(response)
+        return statement('emailDirectors',
+                         'I am emailing you the details for '
+                         + group_name)
+    else:
+        return statement('emailDirectors', 'No dialog')
+
+
 ##############################
 # Required Intents
 ##############################
@@ -226,6 +243,14 @@ def intent_router(event, context):
         return emailComplianceReport(event, context)
     if intent == 'emailTaxDetails':
         return emailTaxDetails(event, context)
+    if intent == 'emailDirectors':
+        return emailDirectors(event, context)
+    if intent == 'emailExecutives':
+        return emailDirectors(event, context)
+    if intent == 'emailDUNS':
+        return emailDirectors(event, context)
+    if intent == 'emailTAXID':
+        return emailDirectors(event, context)
 
     # Required Intents
 
@@ -261,4 +286,3 @@ def lambda_handler(event, context):
 
     if event['request']['type'] == 'IntentRequest':
         return intent_router(event, context)
-

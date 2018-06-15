@@ -21,6 +21,7 @@ Resources:
           SNS_EMAIL_TOPIC: !Ref awsBidsAlexaSns
           SNS_COMPLIANCE_TOPIC: !Ref awsBidsComplianceSns
           SNS_TAX_TOPIC: !Ref awsBidsTaxSns
+          SNS_DIRECTORS_TOPIC: !Ref awsBidsDirectorsSns
           DYNAMODB_TABLE: !Ref bidsLoginTable
 
   awsBidsEmailerSkill:
@@ -81,12 +82,12 @@ Resources:
           Properties:
             Topic: !Ref awsBidsTaxSns
 
-  awsBidsTaxEmailerSkill:
+  awsBidsDirectorSkill:
     Type: AWS::Serverless::Function
     Properties:
       Handler: lambda_function.lambda_handler
       Runtime: python3.6
-      CodeUri: tax_emailer/
+      CodeUri: director/
       Timeout: 300
       Policies:
       - AmazonS3FullAccess
@@ -94,13 +95,19 @@ Resources:
         SNS:
           Type: SNS
           Properties:
-            Topic: !Ref awsBidsTaxSns
+            Topic: !Ref awsBidsDirectorsSns
 
   awsBidsTaxSns:
     Type: "AWS::SNS::Topic"
     Properties: 
       DisplayName: AWS Bids Tax Topic
       TopicName: !Join ["-", [ awsBidsTaxSns, Environment ]]
+
+  awsBidsDirectorsSns:
+    Type: "AWS::SNS::Topic"
+    Properties: 
+      DisplayName: AWS Bids Tax Topic
+      TopicName: !Join ["-", [ awsBidsDirectorsSns, Environment ]]
 
   awsBidsAlexaSns:
     Type: "AWS::SNS::Topic"
