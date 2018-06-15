@@ -2,10 +2,13 @@
 This is a proof of concept to demonstrate how Alexa might be used to support the bids team.
 """
 
-#from __future__ import print_function
-import parseTable
+from __future__ import print_function
 from bs4 import BeautifulSoup
 import requests
+from xhtml2pdf import pisa
+from fuzzywuzzy import fuzz
+from fuzzywuzzy import process
+from operator import itemgetter
 import boto3
 from email.mime.text import MIMEText
 from email.mime.application import MIMEApplication
@@ -13,36 +16,19 @@ from email.mime.multipart import MIMEMultipart
 import json
 import hashlib
 
-response = requests.get('https://aws.amazon.com/tax-help/european-union/').text
+response = requests.get('https://aws.amazon.com/products/').text
 
 
-def getTaxList():
-    hp = parseTable.HTMLTableParser()
+def getServiceList():
     soup = BeautifulSoup(response, 'html.parser')
-    table = soup.find_all('table')
-    tax_table = hp.parse_html_table(table[0])
-    df = tax_table.set_index([0])
-    #print('Table: %s' % df)
-    return df
-# Grab the first table
-#    table = soup.find_all('table')[0]
-#    taxList = []
-#    new_table = pd.DataFrame(columns=range(0, 2), index=[0])
-#    row_marker = 0
-#    for row in table.find_all('tr'):
-#        column_marker = 0
-#        columns = row.find_all('td')
-#        for column in columns:
-#            new_table.iat[row_marker, column_marker] = column.get_text()
-#            column_marker += 1
-#            row_marker += 1
-
-#    for taxCountry in soup.find_all(class_='table-wrapper section'):
-#        serviceUrl = service.a['href']
-#        serviceName = service.a.contents[0].strip()
-#        serviceList.append({'Country': serviceName,
-#                            'Rate': taxRate})
-#    return tax_table
+    serviceList = []
+    for service in soup.find_all(class_='lb-content-item'):
+        serviceUrl = service.a['href']
+        serviceName = service.a.contents[0].strip()
+        serviceList.append({'serviceName': serviceName,
+                            'serviceUrl': 'https://aws.amazon.com'
+                            + serviceUrl})
+    return serviceList
 
 
 def getServiceDescription(serviceUrl):
@@ -98,16 +84,24 @@ def getUrlDigest(url):
     return digest
 
 
-def sendEmail(emailAddress, taxCountry, taxRate):
+def sendEmail(serviceUrl, serviceName, emailAddress):
     client = boto3.client('ses')
     if verifyEmail(emailAddress) is None:
         msg = MIMEMultipart()
-        msg['Subject'] = 'Here is the VAT rate for ' + taxCountry
+        msg['Subject'] = 'Here is the service description for ' + serviceName
         msg['From'] = emailAddress
         msg['To'] = emailAddress
 
-        part = MIMEText('VAT Rate for %s: %s' %
-                        (taxCountry, taxRate))
+        msg.preamble = 'Multipart message.\n'
+
+        part = MIMEText('Service description: %r ' %
+                        getAllParagraphs(requests.get(serviceUrl).text)[0:2])
+        msg.attach(part)
+
+        part = MIMEApplication(open('/tmp/service_description.pdf',
+                                    'rb').read())
+        part.add_header('Content-Disposition', 'attachment',
+                        filename='service_description.pdf')
         msg.attach(part)
 
         result = client.send_raw_email(RawMessage={
@@ -115,7 +109,7 @@ def sendEmail(emailAddress, taxCountry, taxRate):
             },
             Source=msg['From'])
         print(result)
-        return 'I am emailing you the VAT rate for ' + taxCountry
+        return "I'm emailing you a service description for " + serviceName
     else:
         return 'Please go to your mail and verify your email address so we can email you the service description'
 
@@ -131,24 +125,15 @@ def get_user_info(access_token):
 # --------------- Main handler ------------------
 
 
-taxRates = {'UK': '20%', 'Germany': '19%', 'France': '20%'}
-
-
 def lambda_handler(event, context):
     print(event)
     alexa_event = json.loads(event['Records'][0]['Sns']['Message'])
     print(alexa_event)
-    #intent = alexa_event['request']['intent']
-    slot = alexa_event['request']['intent']['slots']
-    tax_dict = getTaxList().to_dict()[1]
-    if 'country' in slot.keys():
-        taxCountry = slot['country']['value']
-        print('We have the country: %s' % taxCountry)
-        print('VAT Rate for %s = %s' % (taxCountry, tax_dict[taxCountry]))
-    #service_name = intent['slots']['service']['value']
-    #emailProfile = get_user_info(alexa_event['session']['user']['accessToken'])['email']
-    emailProfile = 'cmking@gmail.com'
-    #service = findService(service_name)
-    #html = requests.get(service['serviceUrl']).text
-    #createPdf(service['serviceUrl'])
-    resultResponse = sendEmail(emailProfile, taxCountry, tax_dict[taxCountry])
+    intent = alexa_event['request']['intent']
+    print(intent)
+    service_name = intent['slots']['service']['value']
+    emailProfile = get_user_info(alexa_event['session']['user']['accessToken'])['email']
+    service = findService(service_name)
+    html = requests.get(service['serviceUrl']).text
+    createPdf(service['serviceUrl'])
+    resultResponse = sendEmail(service['serviceUrl'], service['serviceName'], emailProfile)
