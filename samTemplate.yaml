@@ -131,7 +131,7 @@ Resources:
       ProvisionedThroughput:
         ReadCapacityUnits: "5"
         WriteCapacityUnits: "5"
-      TableName: "bidsServicesTable"
+      TableName: !Join ["-", ["bidsServicesTable", Environment ]]
 
   bidsLoginTable:
     Type: "AWS::DynamoDB::Table"
