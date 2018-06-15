@@ -26,11 +26,11 @@ class HTMLTableParser:
                 if n_columns == 0:
                     # Set the number of columns for our table
                     n_columns = len(td_tags)
-                    print('n_columns: %s' % n_columns)
+                    #print('n_columns: %s' % n_columns)
                     
             # Handle column names if we find them
             th_tags = row.find_all('th') 
-            print('We have th_tags: %s' % th_tags)
+            #print('We have th_tags: %s' % th_tags)
             if len(th_tags) > 0 and len(column_names) == 0:
                 for th in th_tags:
                     column_names.append(th.get_text())
@@ -40,7 +40,7 @@ class HTMLTableParser:
             raise Exception("Column titles do not match the number of columns")
 
         columns = column_names if len(column_names) > 0 else range(0, n_columns)
-        print('columns: %s' % columns)
+        #print('columns: %s' % columns)
         df = pd.DataFrame(columns=columns,
                           index=range(0, n_rows))
         row_marker = 0
@@ -49,7 +49,7 @@ class HTMLTableParser:
             columns = row.find_all('td')
             for column in columns:
                 df.iat[row_marker, column_marker] = column.get_text()
-                print('Inserted: %s at row: %s, column: %s' %
+                #print('Inserted: %s at row: %s, column: %s' %
                       (column.get_text(), row_marker, column_marker))
                 column_marker += 1
             if len(columns) > 0:
@@ -61,5 +61,5 @@ class HTMLTableParser:
                 df[col] = df[col].astype(float)
             except ValueError:
                 pass
-        print(df)
+        #print(df)
         return df

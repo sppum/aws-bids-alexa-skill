@@ -157,7 +157,7 @@ def emailComplianceReport(event, context):
                              'Please tell me which service you would like to get the compliance report for.')
 
     else:
-        return statement("emailServiceDescription", "No dialog")
+        return statement('emailServiceDescription', 'No dialog')
 
 
 def emailTaxDetails(event, context):
@@ -170,7 +170,8 @@ def emailTaxDetails(event, context):
     elif dialog_state == 'COMPLETED':
         if 'country' in event['request']['intent']['slots']:
             tax_name = event['request']['intent']['slots']['country']['value']
-            push_sns(event, snsTopic)
+            response = push_sns(event, snsTopic)
+            print(response)
             return statement('emailTaxDetails',
                              'I am emailing you the details for '
                              + tax_name)
@@ -179,7 +180,7 @@ def emailTaxDetails(event, context):
                              'Please tell me which country you would like to get the VAT rate for.')
 
     else:
-        return statement('emailServiceDescription', 'No dialog')
+        return statement('emailTaxDetails', 'No dialog')
 ##############################
 # Required Intents
 ##############################

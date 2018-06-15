@@ -8,7 +8,6 @@ from bs4 import BeautifulSoup
 import requests
 import boto3
 from email.mime.text import MIMEText
-from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 import json
 import hashlib
@@ -22,51 +21,13 @@ def getTaxList():
     table = soup.find_all('table')
     tax_table = hp.parse_html_table(table[0])
     df = tax_table.set_index([0])
-    #print('Table: %s' % df)
     return df
-# Grab the first table
-#    table = soup.find_all('table')[0]
-#    taxList = []
-#    new_table = pd.DataFrame(columns=range(0, 2), index=[0])
-#    row_marker = 0
-#    for row in table.find_all('tr'):
-#        column_marker = 0
-#        columns = row.find_all('td')
-#        for column in columns:
-#            new_table.iat[row_marker, column_marker] = column.get_text()
-#            column_marker += 1
-#            row_marker += 1
-
-#    for taxCountry in soup.find_all(class_='table-wrapper section'):
-#        serviceUrl = service.a['href']
-#        serviceName = service.a.contents[0].strip()
-#        serviceList.append({'Country': serviceName,
-#                            'Rate': taxRate})
-#    return tax_table
 
 
 def getServiceDescription(serviceUrl):
     response = requests.get(serviceUrl).text
     soup = BeautifulSoup(response, 'html.parser')
     return soup.find('div', {'id': 'aws-page-content'})
-
-
-def createPdf(serviceUrl):
-    outputFilename = '/tmp/service_description.pdf'
-    with open(outputFilename, 'w+b') as resultFile:
-        pisa.CreatePDF(getServiceDescription(serviceUrl).encode('utf-8'),
-                       resultFile)
-
-
-def findService(serviceName):
-    confidenceList = []
-    serviceList = getServiceList()
-    for service in serviceList:
-        service.update({'ratio': fuzz.ratio(service, serviceName)})
-        confidenceList.append(service)
-    sortedConfidenceList = sorted(confidenceList,
-                                  key=itemgetter('ratio'), reverse=True)
-    return sortedConfidenceList[0]
 
 
 def verifyEmail(email):
@@ -79,16 +40,6 @@ def verifyEmail(email):
             EmailAddress=email,
         )
         return True
-
-
-def getAllParagraphs(url):
-    soup = BeautifulSoup(url, 'html.parser')
-    paragraphs = []
-    content = soup.find(role='main')
-    for paragraph in content.find_all('p'):
-        if paragraph is not None:
-            paragraphs.append(paragraph.text.strip())
-    return paragraphs
 
 
 def getUrlDigest(url):
@@ -131,7 +82,7 @@ def get_user_info(access_token):
 # --------------- Main handler ------------------
 
 
-taxRates = {'UK': '20%', 'Germany': '19%', 'France': '20%'}
+#taxRates = {'UK': '20%', 'Germany': '19%', 'France': '20%'}
 
 
 def lambda_handler(event, context):
@@ -145,10 +96,6 @@ def lambda_handler(event, context):
         taxCountry = slot['country']['value']
         print('We have the country: %s' % taxCountry)
         print('VAT Rate for %s = %s' % (taxCountry, tax_dict[taxCountry]))
-    #service_name = intent['slots']['service']['value']
-    #emailProfile = get_user_info(alexa_event['session']['user']['accessToken'])['email']
     emailProfile = 'cmking@gmail.com'
-    #service = findService(service_name)
-    #html = requests.get(service['serviceUrl']).text
-    #createPdf(service['serviceUrl'])
     resultResponse = sendEmail(emailProfile, taxCountry, tax_dict[taxCountry])
+    return (taxCountry, tax_dict[taxCountry])
