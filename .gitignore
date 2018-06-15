@@ -1,0 +1,6 @@
+# Ignore build sub-directories
+*/build/
+# Ignore pycache
+*/__pycache__/
+# Ignore lock file
+Pipfile.lock
