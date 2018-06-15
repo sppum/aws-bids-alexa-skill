@@ -82,6 +82,29 @@ def getUrlDigest(url):
     return digest
 
 
+def sendTaxEmail(emailAddress, taxItem):
+    client = boto3.client('ses')
+    if verifyEmail(emailAddress) is None:
+        msg = MIMEMultipart()
+        msg['Subject'] = 'Here is the tax item ' + taxItem
+        msg['From'] = emailAddress
+        msg['To'] = emailAddress
+
+        part = MIMEText('Tax item: %s' %
+                        taxItem)
+        msg.attach(part)
+
+        result = client.send_raw_email(RawMessage={
+            'Data': msg.as_string()
+            },
+            Source=msg['From'])
+        print(result)
+        return 'I am emailing you the tax item ' + taxItem
+    else:
+        return 'Please go to your mail and verify your email address so we can email you the service description'
+
+
+
 def sendEmail(emailAddress, taxCountry, taxRate):
     client = boto3.client('ses')
     if verifyEmail(emailAddress) is None:
@@ -133,11 +156,19 @@ def lambda_handler(event, context):
         emailProfile = 'cmking@gmail.com'
         resultResponse = sendEmail(emailProfile, taxCountry, tax_dict[taxCountry])
         return (taxCountry, tax_dict[taxCountry])
-    elif 'getDirectors' in intent['name']:
+    elif 'emailDirectors' in intent['name']:
         directors = getDirectors()
         directors = directors.to_dict()[2]
         return directors
-    elif 'getEO' in intent['name']:
+    elif 'emailExecutives' in intent['name']:
         executives = getEO()
         executives = executives.to_dict()[2]
         return executives
+    elif 'emailDUNS' in intent['name']:
+        emailProfile = 'cmking@gmail.com'
+        resultResponse = sendTaxEmail(emailProfile, DUNS)
+        return resultResponse
+    elif 'emailTAXID' in intent['name']:
+        emailProfile = 'cmking@gmail.com'
+        resultResponse = sendTaxEmail(emailProfile, TAXID)
+        return resultResponse
