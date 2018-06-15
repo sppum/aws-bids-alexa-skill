@@ -50,7 +50,7 @@ class HTMLTableParser:
             for column in columns:
                 df.iat[row_marker, column_marker] = column.get_text()
                 #print('Inserted: %s at row: %s, column: %s' %
-                      (column.get_text(), row_marker, column_marker))
+                #     (column.get_text(), row_marker, column_marker))
                 column_marker += 1
             if len(columns) > 0:
                 row_marker += 1
