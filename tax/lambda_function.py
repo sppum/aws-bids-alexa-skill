@@ -13,9 +13,42 @@ import json
 import hashlib
 
 response = requests.get('https://aws.amazon.com/tax-help/european-union/').text
+boardUrl = requests.get('https://www.sec.gov/Archives/edgar/data/1018724/000119312510164087/dex991.htm').text
+
+DUNS = '88-474-5530'
+TAXID = '91-1646860'
+
+#taxPdf = requests.get('https://inside.amazon.com/en/services/legal/us/spendingandtransaction/Documents/vendor.pdf').text
+
+
+def getEO():
+    """
+    Parses an HTML table, returns a panda Dataframe
+    """
+    hp = parseTable.HTMLTableParser()
+    soup = BeautifulSoup(boardUrl, 'html.parser')
+    table = soup.find_all('table')
+    board_table = hp.parse_html_table(table[3])
+    boardTable = board_table.set_index([0])
+    return boardTable
+
+
+def getDirectors():
+    """
+    Parses an HTML table, returns a panda Dataframe
+    """
+    hp = parseTable.HTMLTableParser()
+    soup = BeautifulSoup(boardUrl, 'html.parser')
+    table = soup.find_all('table')
+    board_table = hp.parse_html_table(table[0])
+    boardTable = board_table.set_index([0])
+    return boardTable
 
 
 def getTaxList():
+    """
+    Parses an HTML table, returns a panda Dataframe
+    """
     hp = parseTable.HTMLTableParser()
     soup = BeautifulSoup(response, 'html.parser')
     table = soup.find_all('table')
@@ -89,13 +122,22 @@ def lambda_handler(event, context):
     print(event)
     alexa_event = json.loads(event['Records'][0]['Sns']['Message'])
     print(alexa_event)
-    #intent = alexa_event['request']['intent']
+    intent = alexa_event['request']['intent']
     slot = alexa_event['request']['intent']['slots']
-    tax_dict = getTaxList().to_dict()[1]
-    if 'country' in slot.keys():
-        taxCountry = slot['country']['value']
-        print('We have the country: %s' % taxCountry)
-        print('VAT Rate for %s = %s' % (taxCountry, tax_dict[taxCountry]))
-    emailProfile = 'cmking@gmail.com'
-    resultResponse = sendEmail(emailProfile, taxCountry, tax_dict[taxCountry])
-    return (taxCountry, tax_dict[taxCountry])
+    if 'getTaxList' in intent['name']:
+        tax_dict = getTaxList().to_dict()[1]
+        if 'country' in slot.keys():
+            taxCountry = slot['country']['value']
+            print('We have the country: %s' % taxCountry)
+            print('VAT Rate for %s = %s' % (taxCountry, tax_dict[taxCountry]))
+        emailProfile = 'cmking@gmail.com'
+        resultResponse = sendEmail(emailProfile, taxCountry, tax_dict[taxCountry])
+        return (taxCountry, tax_dict[taxCountry])
+    elif 'getDirectors' in intent['name']:
+        directors = getDirectors()
+        directors = directors.to_dict()[2]
+        return directors
+    elif 'getEO' in intent['name']:
+        executives = getEO()
+        executives = executives.to_dict()[2]
+        return executives
