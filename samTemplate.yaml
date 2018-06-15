@@ -1,6 +1,10 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: Grabs services description
+Parameters:
+  Environment:
+    Type: String
+    Default: development
 Resources:
   awsBidsAlexaSkill:
     Type: AWS::Serverless::Function
@@ -69,7 +73,7 @@ Resources:
     Type: "AWS::SNS::Topic"
     Properties: 
       DisplayName: AWS Bids Compliance Topic
-      TopicName: awsBidsComplianceSns
+      TopicName: !Join ["-", [ awsBidsComplianceSns, Environment ]]
 
   awsBidsTaxSkill:
     Type: AWS::Serverless::Function
@@ -104,14 +108,14 @@ Resources:
   awsBidsTaxSns:
     Type: "AWS::SNS::Topic"
     Properties: 
-      DisplayName: AWS Bids Compliance Topic
-      TopicName: awsBidsTaxSns
+      DisplayName: AWS Bids Tax Topic
+      TopicName: !Join ["-", [ awsBidsTaxSns, Environment ]]
 
   awsBidsAlexaSns:
     Type: "AWS::SNS::Topic"
     Properties: 
       DisplayName: AWS Bids Alexa Topic
-      TopicName: awsBidsAlexaSns
+      TopicName: !Join ["-", [ awsBidsAlexaSns, Environment ]]
 
   bidsServicesTable:
     Type: 'AWS::DynamoDB::Table'
