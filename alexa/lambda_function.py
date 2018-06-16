@@ -78,7 +78,13 @@ def continue_dialog():
 ##############################
 
 def push_sns(event, snsTopic):
-    sns = boto3.client('sns')
+    if os.getenv('AWS_SAM_LOCAL'):
+        print('SAM_LOCAL DETECTED')
+        sns = boto3.client('sns',
+                           endpoint_url='http://localstack:4575',
+                           region_name='us-east-1')
+    else:
+        sns = boto3.client('sns')
     response = sns.publish(
         TopicArn=snsTopic,
         Message=json.dumps(event)
@@ -272,8 +278,10 @@ def intent_router(event, context):
 def lambda_handler(event, context):
     print(event)
     try:
-        #emailAddress = get_user_info(event['context']['System']['user']['accessToken'])['email']
-        emailAddress = 'cmking@gmail.com'
+        if os.getenv('AWS_SAM_LOCAL'):
+            emailAddress = 'cmking@gmail.com'
+        else:
+            emailAddress = get_user_info(event['context']['System']['user']['accessToken'])['email']
         if not verifyEmail(emailAddress):
             return statement('EmailNotVerified',
                              'Please check your email to verify your email address before we can send you any details.')		#here also don't use StopIntent
