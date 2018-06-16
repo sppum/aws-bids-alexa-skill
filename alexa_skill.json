@@ -49,6 +49,47 @@
                     "samples": [
                         "send me the compliance report for {compliance}"
                     ]
+                },
+								                {
+                    "name": "emailTaxDetails",
+                    "slots": [
+                        {
+                            "name": "country",
+                            "type": "country"
+                        }
+                    ],
+                    "samples": [
+                        "please send me the tax details for {country}",
+                        "send me the DUNS number"
+                    ]
+                },
+                {
+                    "name": "emailExecutives",
+                    "slots": [],
+                    "samples": [
+                        "send me the list of executives"
+                    ]
+                },
+                {
+                    "name": "emailDirectors",
+                    "slots": [],
+                    "samples": [
+                        "send me the list of directors"
+                    ]
+                },
+                {
+                    "name": "emailDUNS",
+                    "slots": [],
+                    "samples": [
+                        "send me the DUNS number for Amazon"
+                    ]
+                },
+                {
+                    "name": "emailTAXID",
+                    "slots": [],
+                    "samples": [
+                        "send me the tax number for Amazon"
+                    ]
                 }
             ],
             "types": [
