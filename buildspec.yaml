@@ -2,7 +2,7 @@
 version: 0.1
 env:
   variables:
-    S3_BUCKET: $OUTPUT_BUCKET
+    S3_BUCKET: "awsalexaskill-pipeline-codepipelinebucket-1j5n3xexrp9tz"
 phases:
   install:
     commands:
