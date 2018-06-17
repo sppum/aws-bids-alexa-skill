@@ -5,6 +5,7 @@ phases:
     commands:
       - apt-get install -y zlib1g-dev
       - pip install -r alexa/requirements.txt -t alexa/ 
+      - pip install -r directors/requirements.txt -t directors/
       - pip install -r emailer/requirements.txt -t emailer/
       - pip install -r tax/requirements.txt -t tax/
       - pip install -r tax_emailer/requirements.txt -t tax_emailer/
