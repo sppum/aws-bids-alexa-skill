@@ -102,7 +102,6 @@ def lambda_handler(event, context):
     alexa_event = json.loads(event['Records'][0]['Sns']['Message'])
     print(alexa_event)
     intent = alexa_event['request']['intent']
-    slot = alexa_event['request']['intent']['slots']
     if 'emailDirectors' in intent['name']:
         directors = getDirectors()
         directors = directors.to_dict()[2]
