@@ -1,5 +1,8 @@
 
 version: 0.1
+env:
+  variables:
+    S3_BUCKET: $OUTPUT_BUCKET
 phases:
   install:
     commands:
@@ -10,7 +13,7 @@ phases:
       - pip install -r tax/requirements.txt -t tax/
       - pip install -r tax_emailer/requirements.txt -t tax_emailer/
       - pip install -r compliance/requirements.txt -t compliance/
-      - aws cloudformation package --template-file samTemplate.yaml --s3-bucket awsalexaskill-pipeline-codepipelinebucket-1j5n3xexrp9tz
+      - aws cloudformation package --template-file samTemplate.yaml --s3-bucket $S3_BUCKET
                                    --output-template-file outputSamTemplate.yaml
 artifacts:
   type: zip
