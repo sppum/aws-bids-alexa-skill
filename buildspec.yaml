@@ -1,5 +1,5 @@
 
-version: 0.1
+version: 0.2
 env:
   variables:
     S3_BUCKET: "awsalexaskill-pipeline-codepipelinebucket-1j5n3xexrp9tz"
