@@ -11,7 +11,6 @@ phases:
       - pip install -r directors/requirements.txt -t directors/
       - pip install -r emailer/requirements.txt -t emailer/
       - pip install -r tax/requirements.txt -t tax/
-      - pip install -r tax_emailer/requirements.txt -t tax_emailer/
       - pip install -r compliance/requirements.txt -t compliance/
       - aws cloudformation package --template-file samTemplate.yaml --s3-bucket $S3_BUCKET
                                    --output-template-file outputSamTemplate.yaml
