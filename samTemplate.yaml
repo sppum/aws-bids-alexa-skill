@@ -82,7 +82,7 @@ Resources:
           Properties:
             Topic: !Ref awsBidsTaxSns
 
-  awsBidsDirectorSkill:
+  awsBidsDirectorsSkill:
     Type: AWS::Serverless::Function
     Properties:
       Handler: lambda_function.lambda_handler
@@ -91,6 +91,7 @@ Resources:
       Timeout: 300
       Policies:
       - AmazonS3FullAccess
+      - AmazonSESFullAccess
       Events:
         SNS:
           Type: SNS
