@@ -64,16 +64,16 @@ def getUrlDigest(url):
     return digest
 
 
-def sendTaxEmail(emailAddress, taxItem):
+def sendTaxEmail(emailAddress, taxItem, description):
     client = boto3.client('ses')
     if verifyEmail(emailAddress) is None:
         msg = MIMEMultipart()
-        msg['Subject'] = 'Here is the tax item ' + taxItem
+        msg['Subject'] = 'Here is the Amazon ' + description
         msg['From'] = emailAddress
         msg['To'] = emailAddress
 
-        part = MIMEText('Tax item: %s' %
-                        taxItem)
+        part = MIMEText('The Amazon %s is: %s' %
+                        description, taxItem)
         msg.attach(part)
 
         result = client.send_raw_email(RawMessage={
@@ -81,7 +81,7 @@ def sendTaxEmail(emailAddress, taxItem):
             },
             Source=msg['From'])
         print(result)
-        return 'I am emailing you the tax item ' + taxItem
+        return 'I am emailing you the tax item ' + description
     else:
         return 'Please go to your mail and verify your email address so we can email you the service description'
 
@@ -112,9 +112,11 @@ def lambda_handler(event, context):
         return executives
     elif 'emailDUNS' in intent['name']:
         emailProfile = 'cmking@gmail.com'
-        resultResponse = sendTaxEmail(emailProfile, DUNS)
+        description = 'DUNS'
+        resultResponse = sendTaxEmail(emailProfile, DUNS, description)
         return resultResponse
     elif 'emailTAXID' in intent['name']:
         emailProfile = 'cmking@gmail.com'
-        resultResponse = sendTaxEmail(emailProfile, TAXID)
+        description = 'TAX ID'
+        resultResponse = sendTaxEmail(emailProfile, TAXID, description)
         return resultResponse
