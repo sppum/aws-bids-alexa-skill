@@ -59,8 +59,7 @@
                         }
                     ],
                     "samples": [
-                        "please send me the tax details for {country}",
-                        "send me the DUNS number"
+                        "please send me the tax details for {country}"
                     ]
                 },
                 {
