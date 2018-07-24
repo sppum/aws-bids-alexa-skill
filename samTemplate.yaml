@@ -104,12 +104,12 @@ Resources:
     Properties:
       AttributeDefinitions:
         -
-          AttributeName: "Useremail"
+          AttributeName: "UserEmail"
           AttributeType: "S"
       KeySchema:
         -
-          AttributeName: "notes"
-          KeyType: "M"
+          AttributeName: "UserEmail"
+          KeyType: "HASH"
       ProvisionedThroughput:
         ReadCapacityUnits: "5"
         WriteCapacityUnits: "5"
