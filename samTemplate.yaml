@@ -17,6 +17,7 @@ Resources:
           SNS_EMAIL_TOPIC: !Ref awsBidsAlexaSns
           SNS_COMPLIANCE_TOPIC: !Ref awsBidsComplianceSns
           DYNAMODB_TABLE: !Ref bidsLoginTable
+          DYNAMODB_NOTES_TABLE: !Ref bidsNotesTable
 
   awsBidsEmailerSkill:
     Type: AWS::Serverless::Function
