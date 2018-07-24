@@ -155,6 +155,12 @@ def emailComplianceReport(event, context):
 
     else:
         return statement("emailServiceDescription", "No dialog")
+        
+def takeNote(event, context):
+        
+    snsTopic = os.environ.get('SNS_COMPLIANCE_TOPIC')
+    return statement("takeNote", "I've taken the note " + event['request']['intent']['slots']['notes']['value'])
+
 
 ##############################
 # Required Intents
@@ -199,6 +205,8 @@ def intent_router(event, context):
         return emailServiceDescription(event, context)
     if intent == 'emailComplianceReport':
         return emailComplianceReport(event, context)
+    if intent == 'takeNote':
+        return takeNote(event, context)
 
     # Required Intents
 
@@ -232,4 +240,5 @@ def lambda_handler(event, context):
 
     if event['request']['type'] == 'IntentRequest':
         return intent_router(event, context)
+
 

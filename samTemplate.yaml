@@ -98,3 +98,19 @@ Resources:
         ReadCapacityUnits: "5"
         WriteCapacityUnits: "5"
       TableName: "bidsLoginTable"
+
+  bidsNotesTable:
+    Type: "AWS::DynamoDB::Table"
+    Properties:
+      AttributeDefinitions:
+        -
+          AttributeName: "Useremail"
+          AttributeType: "S"
+      KeySchema:
+        -
+          AttributeName: "notes"
+          KeyType: "M"
+      ProvisionedThroughput:
+        ReadCapacityUnits: "5"
+        WriteCapacityUnits: "5"
+      TableName: "bidsNotesTable"
