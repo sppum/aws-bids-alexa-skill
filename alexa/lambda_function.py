@@ -2,6 +2,7 @@ import boto3
 import os
 import json
 import requests
+import datetime
 
 ##############################
 # Builders
@@ -111,6 +112,50 @@ def get_user_info(access_token):
 ##############################
 
 
+def takeNote(event, context):
+
+    dynamoDBTable = os.environ.get('DYNAMODB_NOTES_TABLE')
+    emailAddress = get_user_info(event['context']['System']['user']['accessToken'])['email']
+    date = str(datetime.date.today())
+    new_note = event['request']['intent']['slots']['notes']['value']
+
+    client = boto3.client('dynamodb')
+
+    response = client.query(
+        ExpressionAttributeValues={
+            ':v1': {
+                'S': emailAddress,
+            },
+        },
+        KeyConditionExpression='UserEmail = :v1',
+        TableName=dynamoDBTable,
+    )
+
+    if response['Items'] != []:
+        todaysNotes = response['Items'][0]['notes']['M']
+        for key, value in todaysNotes.items():
+            if key == date:
+               response['Items'][0]['notes']['M'][date]['L'].append({'S': new_note})
+               newNote = response['Items'][0]
+               response = client.put_item(
+                   Item=newNote,
+                   TableName=dynamoDBTable,
+               )
+               print(response)
+            else:
+                response = client.put_item(
+                    Item={'UserEmail': {'S': emailAddress}, 'notes': {'M': {date: {'L': [{'S': new_note}]}}}},
+                    TableName=dynamoDBTable,
+                )
+                print(response)
+    else:
+        response = client.put_item(
+            Item={'UserEmail': {'S': emailAddress}, 'notes': {'M': {date: {'L': [{'S': new_note}]}}}},
+            TableName=dynamoDBTable,
+        )
+    return statement('takeNote')
+
+
 def emailServiceDescription(event, context):
     print('############################')
     snsTopic = os.environ.get('SNS_EMAIL_TOPIC')
@@ -155,11 +200,6 @@ def emailComplianceReport(event, context):
 
     else:
         return statement("emailServiceDescription", "No dialog")
-        
-def takeNote(event, context):
-        
-    snsTopic = os.environ.get('SNS_COMPLIANCE_TOPIC')
-    return statement("takeNote", "I've taken the note " + event['request']['intent']['slots']['notes']['value'])
 
 
 ##############################
@@ -240,5 +280,6 @@ def lambda_handler(event, context):
 
     if event['request']['type'] == 'IntentRequest':
         return intent_router(event, context)
+
 
 

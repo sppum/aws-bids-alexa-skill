@@ -12,6 +12,7 @@ Resources:
       Policies:
       - AmazonSESFullAccess
       - AmazonSNSFullAccess
+      - AmazonDynamoDBFullAccess
       Environment:
         Variables:
           SNS_EMAIL_TOPIC: !Ref awsBidsAlexaSns
