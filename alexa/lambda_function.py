@@ -112,6 +112,35 @@ def get_user_info(access_token):
 ##############################
 
 
+def getNotes(event, context):
+
+    dynamoDBTable = os.environ.get('DYNAMODB_NOTES_TABLE')
+    emailAddress = get_user_info(event['context']['System']['user']['accessToken'])['email']
+    date = str(datetime.date.today())
+
+    client = boto3.client('dynamodb')
+
+    response = client.query(
+        ExpressionAttributeValues={
+            ':v1': {
+                'S': emailAddress,
+            },
+        },
+        KeyConditionExpression='UserEmail = :v1',
+        TableName=dynamoDBTable,
+    )
+    
+    if response['Items'] != []:
+        todaysNotes = response['Items'][0]['notes']['M'][date]
+        notes = ''
+        count = 1
+        for key in todaysNotes['L']:
+            notes = notes + str(count) + '. ' + key['S'] + ' '
+            count = count + 1
+        return statement('takeNote', 'Here are your notes. ' + notes)
+    else:
+        return statement('takeNote', 'You do not have any notes.')    
+
 def takeNote(event, context):
 
     dynamoDBTable = os.environ.get('DYNAMODB_NOTES_TABLE')
@@ -153,7 +182,7 @@ def takeNote(event, context):
             Item={'UserEmail': {'S': emailAddress}, 'notes': {'M': {date: {'L': [{'S': new_note}]}}}},
             TableName=dynamoDBTable,
         )
-    return statement('takeNote')
+    return statement('takeNote', 'I have recorded ' + new_note + " I'll email you a summary at 5pm")
 
 
 def emailServiceDescription(event, context):
@@ -247,7 +276,9 @@ def intent_router(event, context):
         return emailComplianceReport(event, context)
     if intent == 'takeNote':
         return takeNote(event, context)
-
+    if intent == 'getNotes':
+        return getNotes(event, context)
+        
     # Required Intents
 
     if intent == 'AMAZON.CancelIntent':
@@ -280,6 +311,7 @@ def lambda_handler(event, context):
 
     if event['request']['type'] == 'IntentRequest':
         return intent_router(event, context)
+
 
 
 
