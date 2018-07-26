@@ -16,6 +16,7 @@ Resources:
       Policies:
       - AmazonSESFullAccess
       - AmazonSNSFullAccess
+      - AmazonDynamoDBFullAccess
       Environment:
         Variables:
           SNS_EMAIL_TOPIC: !Ref awsBidsAlexaSns
@@ -23,6 +24,7 @@ Resources:
           SNS_TAX_TOPIC: !Ref awsBidsTaxSns
           SNS_DIRECTORS_TOPIC: !Ref awsBidsDirectorsSns
           DYNAMODB_TABLE: !Ref bidsLoginTable
+          DYNAMODB_NOTES_TABLE: !Ref bidsNotesTable
 
   awsBidsEmailerSkill:
     Type: AWS::Serverless::Function
@@ -147,3 +149,19 @@ Resources:
         ReadCapacityUnits: "5"
         WriteCapacityUnits: "5"
       TableName: !Join ["-", ["bidsLoginTable", Environment ]]
+
+  bidsNotesTable:
+    Type: "AWS::DynamoDB::Table"
+    Properties:
+      AttributeDefinitions:
+        -
+          AttributeName: "UserEmail"
+          AttributeType: "S"
+      KeySchema:
+        -
+          AttributeName: "UserEmail"
+          KeyType: "HASH"
+      ProvisionedThroughput:
+        ReadCapacityUnits: "5"
+        WriteCapacityUnits: "5"
+      TableName: "bidsNotesTable"
