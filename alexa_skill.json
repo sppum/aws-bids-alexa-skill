@@ -49,6 +49,46 @@
                     "samples": [
                         "send me the compliance report for {compliance}"
                     ]
+                },
+								                {
+                    "name": "emailTaxDetails",
+                    "slots": [
+                        {
+                            "name": "country",
+                            "type": "country"
+                        }
+                    ],
+                    "samples": [
+                        "please send me the tax details for {country}"
+                    ]
+                },
+                {
+                    "name": "emailExecutives",
+                    "slots": [],
+                    "samples": [
+                        "send me the list of executives"
+                    ]
+                },
+                {
+                    "name": "emailDirectors",
+                    "slots": [],
+                    "samples": [
+                        "send me the list of directors"
+                    ]
+                },
+                {
+                    "name": "emailDUNS",
+                    "slots": [],
+                    "samples": [
+                        "send me the DUNS number for Amazon"
+                    ]
+                },
+                {
+                    "name": "emailTAXID",
+                    "slots": [],
+                    "samples": [
+                        "send me the tax number for Amazon"
+                    ]
                 }
             ],
             "types": [
@@ -91,6 +131,26 @@
                             }
                         }
                     ]
+                },
+								{
+                    "name": "country",
+                    "values": [
+                        {
+                            "name": {
+                                "value": "France"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Germany"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "UK"
+                            }
+                        }
+                    ]
                 }
             ]
         },
@@ -129,6 +189,19 @@
                             }
                         }
                     ]
+                },
+								{
+                    "name": "emailTaxDetails",
+                    "slots": [
+                        {
+                            "name": "country",
+                            "type": "country"
+                        }
+                    ],
+                    "samples": [
+                        "please send me the tax details for {country}",
+                        "send me the DUNS number"
+                    ]
                 }
             ]
         },
@@ -166,6 +239,15 @@
                     {
                         "type": "PlainText",
                         "value": "Did you want me to send a compliance report for {compliance}"
+                    }
+                ]
+            },
+						{
+                "id": "Elicit.Slot.625190729799.876569382623",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "Which country did you want the VAT rate for?"
                     }
                 ]
             }

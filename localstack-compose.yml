@@ -1,0 +1,16 @@
+version: "3"
+services:
+  localstack:
+      image: localstack/localstack
+      environment:
+        - SERVICES=sqs,sns,dynamodb
+        - DEFAULT_REGION=eu-west-1
+      ports:
+        - "4567-4582:4567-4582"
+        - "8081:8081"
+
+networks:
+  default:
+    external:
+      name: localstack
+

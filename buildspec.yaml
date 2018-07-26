@@ -1,13 +1,18 @@
 
-version: 0.1
+version: 0.2
+env:
+  variables:
+    S3_BUCKET: "awsalexaskill-pipeline-codepipelinebucket-1j5n3xexrp9tz"
 phases:
   install:
     commands:
       - apt-get install -y zlib1g-dev
       - pip install -r alexa/requirements.txt -t alexa/ 
+      - pip install -r directors/requirements.txt -t directors/
       - pip install -r emailer/requirements.txt -t emailer/
+      - pip install -r tax/requirements.txt -t tax/
       - pip install -r compliance/requirements.txt -t compliance/
-      - aws cloudformation package --template-file samTemplate.yaml --s3-bucket aws-bids-alexa-pipeline-codepipelinebucket-1vwh6idvuy0he
+      - aws cloudformation package --template-file samTemplate.yaml --s3-bucket $S3_BUCKET
                                    --output-template-file outputSamTemplate.yaml
 artifacts:
   type: zip

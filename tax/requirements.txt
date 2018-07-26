@@ -1,6 +1,5 @@
 requests
 bs4
-xhtml2pdf
-fuzzywuzzy
+pandas
 python-Levenshtein
 lxml

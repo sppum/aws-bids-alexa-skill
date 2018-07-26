@@ -79,7 +79,13 @@ def continue_dialog():
 ##############################
 
 def push_sns(event, snsTopic):
-    sns = boto3.client('sns')
+    if os.getenv('AWS_SAM_LOCAL'):
+        print('SAM_LOCAL DETECTED')
+        sns = boto3.client('sns',
+                           endpoint_url='http://localstack:4575',
+                           region_name='us-east-1')
+    else:
+        sns = boto3.client('sns')
     response = sns.publish(
         TopicArn=snsTopic,
         Message=json.dumps(event)
@@ -194,7 +200,6 @@ def takeNote(event, context):
 def emailServiceDescription(event, context):
     print('############################')
     snsTopic = os.environ.get('SNS_EMAIL_TOPIC')
-        
     dialog_state = event['request']['dialogState']
 
     if dialog_state in ('STARTED', 'IN_PROGRESS'):
@@ -218,23 +223,66 @@ def emailServiceDescription(event, context):
 
 
 def emailComplianceReport(event, context):
-        
     snsTopic = os.environ.get('SNS_COMPLIANCE_TOPIC')
     dialog_state = event['request']['dialogState']
 
-    if dialog_state in ("STARTED", "IN_PROGRESS"):
+    if dialog_state in ('STARTED', 'IN_PROGRESS'):
         return continue_dialog()
 
-    elif dialog_state == "COMPLETED":
+    elif dialog_state == 'COMPLETED':
         if 'compliance' in event['request']['intent']['slots']:
             compliance_name = event['request']['intent']['slots']['compliance']['value']
             push_sns(event, snsTopic)
-            return statement("emailComplianceReport", "I'm emailing you the compliance report for " + compliance_name)
+            return statement('emailComplianceReport',
+                             'I am emailing you the complaince report for '
+                             + compliance_name)
         else:
-            return statement("emailComplianceReport", "Please tell me which service you would like to get the compliance report for.")
+            return statement('emailComplianceReport',
+                             'Please tell me which service you would like to get the compliance report for.')
 
     else:
-        return statement("emailServiceDescription", "No dialog")
+        return statement('emailServiceDescription', 'No dialog')
+
+
+def emailTaxDetails(event, context):
+    snsTopic = os.environ.get('SNS_TAX_TOPIC')
+    dialog_state = event['request']['dialogState']
+
+    if dialog_state in ('STARTED', 'IN_PROGRESS'):
+        return continue_dialog()
+
+    elif dialog_state == 'COMPLETED':
+        if 'country' in event['request']['intent']['slots']:
+            tax_name = event['request']['intent']['slots']['country']['value']
+            response = push_sns(event, snsTopic)
+            print(response)
+            return statement('emailTaxDetails',
+                             'I am emailing you the details for '
+                             + tax_name)
+        else:
+            return statement('emailTaxDetails',
+                             'Please tell me which country you would like to get the VAT rate for.')
+    else:
+        return statement('emailTaxDetails', 'No dialog')
+
+
+def emailDirectors(event, context):
+    snsTopic = os.environ.get('SNS_DIRECTORS_TOPIC')
+    dialog_state = event['request']['dialogState']
+
+    if dialog_state in ('STARTED', 'IN_PROGRESS'):
+        return continue_dialog()
+
+    elif dialog_state == 'COMPLETED':
+        group_name = 'PLACEHOLDER'
+        response = push_sns(event, snsTopic)
+        print(response)
+        return statement('emailDirectors',
+                         'I am emailing you the details for '
+                         + group_name)
+    else:
+        return statement('emailDirectors', 'No dialog')
+
 
 
 ##############################
@@ -280,10 +328,22 @@ def intent_router(event, context):
         return emailServiceDescription(event, context)
     if intent == 'emailComplianceReport':
         return emailComplianceReport(event, context)
+
+    if intent == 'emailTaxDetails':
+        return emailTaxDetails(event, context)
+    if intent == 'emailDirectors':
+        return emailDirectors(event, context)
+    if intent == 'emailExecutives':
+        return emailDirectors(event, context)
+    if intent == 'emailDUNS':
+        return emailDirectors(event, context)
+    if intent == 'emailTAXID':
+        return emailDirectors(event, context)
     if intent == 'takeNote':
         return takeNote(event, context)
     if intent == 'getNotes':
         return getNotes(event, context)
+        
         
     # Required Intents
 
@@ -305,19 +365,19 @@ def intent_router(event, context):
 def lambda_handler(event, context):
     print(event)
     try:
-        emailAddress = get_user_info(event['context']['System']['user']['accessToken'])['email']
+        if os.getenv('AWS_SAM_LOCAL'):
+            emailAddress = 'cmking@gmail.com'
+        else:
+            emailAddress = get_user_info(event['context']['System']['user']['accessToken'])['email']
         if not verifyEmail(emailAddress):
             return statement('EmailNotVerified',
                              'Please check your email to verify your email address before we can send you any details.')		#here also don't use StopIntent
 
     except Exception as err:
         return linkaccount('NotLinked',
-                         'Your user details are not available at this time.  Have you completed account linking via the Alexa app?')		#here also don't use StopIntent if event['request']['type'] == "LaunchRequest":
-        return on_launch(event, context)
+                         'Your user details are not available at this time.  Have you completed account linking via the Alexa app?')
+        #here also don't use StopIntent if event['request']['type'] == "LaunchRequest":
+        #return on_launch(event, context)
 
     if event['request']['type'] == 'IntentRequest':
         return intent_router(event, context)
-
-
-
-
