@@ -135,7 +135,7 @@ def getNotes(event, context):
         notes = ''
         count = 1
         for key in todaysNotes['L']:
-            notes = notes + str(count) + '. ' + key['S'] + ' '
+            notes = notes + str(count) + '' + key['S'] + '. '
             count = count + 1
         return statement('takeNote', 'Here are your notes. ' + notes)
     else:
@@ -143,47 +143,53 @@ def getNotes(event, context):
 
 def takeNote(event, context):
 
-    dynamoDBTable = os.environ.get('DYNAMODB_NOTES_TABLE')
-    emailAddress = get_user_info(event['context']['System']['user']['accessToken'])['email']
-    date = str(datetime.date.today())
-    new_note = event['request']['intent']['slots']['notes']['value']
+    dialog_state = event['request']['dialogState']
 
-    client = boto3.client('dynamodb')
+    if dialog_state in ("STARTED", "IN_PROGRESS"):
+        return continue_dialog()
 
-    response = client.query(
-        ExpressionAttributeValues={
-            ':v1': {
-                'S': emailAddress,
+    elif dialog_state == "COMPLETED":
+        dynamoDBTable = os.environ.get('DYNAMODB_NOTES_TABLE')
+        emailAddress = get_user_info(event['context']['System']['user']['accessToken'])['email']
+        date = str(datetime.date.today())
+        new_note = event['request']['intent']['slots']['notes']['value']
+    
+        client = boto3.client('dynamodb')
+    
+        response = client.query(
+            ExpressionAttributeValues={
+                ':v1': {
+                    'S': emailAddress,
+                },
             },
-        },
-        KeyConditionExpression='UserEmail = :v1',
-        TableName=dynamoDBTable,
-    )
-
-    if response['Items'] != []:
-        todaysNotes = response['Items'][0]['notes']['M']
-        for key, value in todaysNotes.items():
-            if key == date:
-               response['Items'][0]['notes']['M'][date]['L'].append({'S': new_note})
-               newNote = response['Items'][0]
-               response = client.put_item(
-                   Item=newNote,
-                   TableName=dynamoDBTable,
-               )
-               print(response)
-            else:
-                response = client.put_item(
-                    Item={'UserEmail': {'S': emailAddress}, 'notes': {'M': {date: {'L': [{'S': new_note}]}}}},
-                    TableName=dynamoDBTable,
-                )
-                print(response)
-    else:
-        response = client.put_item(
-            Item={'UserEmail': {'S': emailAddress}, 'notes': {'M': {date: {'L': [{'S': new_note}]}}}},
+            KeyConditionExpression='UserEmail = :v1',
             TableName=dynamoDBTable,
         )
-    return statement('takeNote', 'I have recorded ' + new_note + " I'll email you a summary at 5pm")
-
+    
+        if response['Items'] != []:
+            todaysNotes = response['Items'][0]['notes']['M']
+            for key, value in todaysNotes.items():
+                if key == date:
+                   response['Items'][0]['notes']['M'][date]['L'].append({'S': new_note})
+                   newNote = response['Items'][0]
+                   response = client.put_item(
+                       Item=newNote,
+                       TableName=dynamoDBTable,
+                   )
+                   print(response)
+                else:
+                    response = client.put_item(
+                        Item={'UserEmail': {'S': emailAddress}, 'notes': {'M': {date: {'L': [{'S': new_note}]}}}},
+                        TableName=dynamoDBTable,
+                    )
+                    print(response)
+        else:
+            response = client.put_item(
+                Item={'UserEmail': {'S': emailAddress}, 'notes': {'M': {date: {'L': [{'S': new_note}]}}}},
+                TableName=dynamoDBTable,
+            )
+        return statement('takeNote', 'I have recorded ' + new_note + ". I'll email you a summary at 5pm")
+    
 
 def emailServiceDescription(event, context):
     print('############################')
