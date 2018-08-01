@@ -23,6 +23,7 @@ complianceBucket = os.environ.get('COMPLIANCE_BUCKETNAME')
 
 def getFiles(compliance_name):
     s3 = boto3.resource('s3')
+    print(compliance_name)
     if re.match(".*27001.*", compliance_name):
         s3.Bucket(complianceBucket).download_file('iso_27001_global_certification.pdf', '/tmp/iso_27001_global_certification.pdf')
         return '/tmp/iso_27001_global_certification.pdf'

@@ -283,6 +283,9 @@ def emailDirectors(event, context):
     else:
         return statement('emailDirectors', 'No dialog')
 
+def readDUNS(event, context):
+    Duns = '88-474-5530'
+    return statement('readDUNS', 'The DUNS number is ' + Duns)
 
 
 ##############################
@@ -343,6 +346,8 @@ def intent_router(event, context):
         return takeNote(event, context)
     if intent == 'getNotes':
         return getNotes(event, context)
+    if intent == 'readDUNS':
+        return readDUNS(event, context)
         
         
     # Required Intents

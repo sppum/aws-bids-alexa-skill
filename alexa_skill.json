@@ -50,7 +50,7 @@
                         "send me the compliance report for {compliance}"
                     ]
                 },
-								                {
+                {
                     "name": "emailTaxDetails",
                     "slots": [
                         {
@@ -80,6 +80,7 @@
                     "name": "emailDUNS",
                     "slots": [],
                     "samples": [
+                        "to send me the DUNS number for Amazon",
                         "send me the DUNS number for Amazon"
                     ]
                 },
@@ -88,6 +89,47 @@
                     "slots": [],
                     "samples": [
                         "send me the tax number for Amazon"
+                    ]
+                },
+                {
+                    "name": "takeNote",
+                    "slots": [
+                        {
+                            "name": "notes",
+                            "type": "AMAZON.SearchQuery",
+                            "samples": [
+                                "{notes}"
+                            ]
+                        }
+                    ],
+                    "samples": [
+                        "notes {notes}",
+                        "note {notes}",
+                        "record {notes}",
+                        "to take note",
+                        "to take a note {notes}",
+                        "record",
+                        "note",
+                        "notes",
+                        "take note {notes}",
+                        "to take note {notes}"
+                    ]
+                },
+                {
+                    "name": "getNotes",
+                    "slots": [],
+                    "samples": [
+                        "what are my notes",
+                        "read my notes",
+                        "read notes",
+                        "get my notes"
+                    ]
+                },
+                {
+                    "name": "readDUNS",
+                    "slots": [],
+                    "samples": [
+                        "what's the duns number for Amazon"
                     ]
                 }
             ],
@@ -132,7 +174,7 @@
                         }
                     ]
                 },
-								{
+                {
                     "name": "country",
                     "values": [
                         {
@@ -190,17 +232,34 @@
                         }
                     ]
                 },
-								{
+                {
                     "name": "emailTaxDetails",
+                    "confirmationRequired": false,
+                    "prompts": {},
                     "slots": [
                         {
                             "name": "country",
-                            "type": "country"
+                            "type": "country",
+                            "confirmationRequired": false,
+                            "elicitationRequired": false,
+                            "prompts": {}
                         }
-                    ],
-                    "samples": [
-                        "please send me the tax details for {country}",
-                        "send me the DUNS number"
+                    ]
+                },
+                {
+                    "name": "takeNote",
+                    "confirmationRequired": false,
+                    "prompts": {},
+                    "slots": [
+                        {
+                            "name": "notes",
+                            "type": "AMAZON.SearchQuery",
+                            "confirmationRequired": false,
+                            "elicitationRequired": true,
+                            "prompts": {
+                                "elicitation": "Elicit.Slot.144933773918.415952215844"
+                            }
+                        }
                     ]
                 }
             ]
@@ -242,12 +301,21 @@
                     }
                 ]
             },
-						{
+            {
                 "id": "Elicit.Slot.625190729799.876569382623",
                 "variations": [
                     {
                         "type": "PlainText",
                         "value": "Which country did you want the VAT rate for?"
+                    }
+                ]
+            },
+            {
+                "id": "Elicit.Slot.144933773918.415952215844",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "What do you want me to record?"
                     }
                 ]
             }
