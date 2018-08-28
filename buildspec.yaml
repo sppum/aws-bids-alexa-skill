@@ -2,7 +2,7 @@
 version: 0.2
 env:
   variables:
-    S3_BUCKET: "aws-bids-alexa-pipeline-codepipelinebucket-1vwh6idvuy0he"
+    S3_BUCKET: "bidsupport-pipeline-codepipelinebucket-tt6e48wyk16e"
 phases:
   install:
     commands:
