@@ -116,7 +116,8 @@ def get_user_info(access_token):
 
 
 def lambda_handler(event, context):
-    print("Received event: " + json.loads(event))
+    print("Received event: ")
+    print(event)
     alexa_event = json.loads(event['Records'][0]['Sns']['Message'])
     print("Alexa event: " + alexa_event)
     intent = alexa_event['request']['intent']
