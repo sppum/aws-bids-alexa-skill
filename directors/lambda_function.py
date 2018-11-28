@@ -129,12 +129,14 @@ def lambda_handler(event, context):
         executives = executives.to_dict()[2]
         return executives
     elif 'emailDUNS' in intent['name']:
-        emailProfile = 'cmking@gmail.com'
         description = 'DUNS'
-        resultResponse = sendTaxEmail(emailProfile, DUNS, description)
-        return resultResponse
+        response = push_sns(event, EmailSnsTopic)
+        print("Pushed to topic: %s" % EmailSnsTopic)
+        print(response)
+        return response
     elif 'emailTAXID' in intent['name']:
-        emailProfile = 'cmking@gmail.com'
         description = 'TAX ID'
-        resultResponse = sendTaxEmail(emailProfile, TAXID, description)
-        return resultResponse
+        response = push_sns(event, EmailSnsTopic)
+        print("Pushed to topic: %s" % EmailSnsTopic)
+        print(response)
+        return response
