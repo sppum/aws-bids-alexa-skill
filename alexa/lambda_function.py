@@ -209,10 +209,9 @@ def emailServiceDescription(event, context):
         if 'service' in event['request']['intent']['slots']:
             service_name = event['request']['intent']['slots']['service']['value']
             messageid = push_sns(event, snsTopic)
-            return statement('emailServiceDescription',
-                             "I'm emailing you the service description for "
-                             + service_name)
-            push_sns(event, snsTopic)
+            response = push_sns(event, snsTopic)
+            print("Pushed to topic: %s" % snsTopic)
+            print(response)
             return statement("emailServiceDescription", "I'm emailing you the service description for " + service_name)
         else:
             return statement('emailServiceDescription',
@@ -232,7 +231,9 @@ def emailComplianceReport(event, context):
     elif dialog_state == 'COMPLETED':
         if 'compliance' in event['request']['intent']['slots']:
             compliance_name = event['request']['intent']['slots']['compliance']['value']
-            push_sns(event, snsTopic)
+            response = push_sns(event, snsTopic)
+            print("Pushed to topic: %s" % snsTopic)
+            print(response)
             return statement('emailComplianceReport',
                              'I am emailing you the complaince report for '
                              + compliance_name)
@@ -255,6 +256,7 @@ def emailTaxDetails(event, context):
         if 'country' in event['request']['intent']['slots']:
             tax_name = event['request']['intent']['slots']['country']['value']
             response = push_sns(event, snsTopic)
+            print("Pushed to topic: %s" % snsTopic)
             print(response)
             return statement('emailTaxDetails',
                              'I am emailing you the details for '
@@ -276,6 +278,7 @@ def emailDirectors(event, context):
     elif dialog_state == 'COMPLETED':
         group_name = 'PLACEHOLDER'
         response = push_sns(event, snsTopic)
+        print("Pushed to topic: %s" % snsTopic)
         print(response)
         return statement('emailDirectors',
                          'I am emailing you the details for '
