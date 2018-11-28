@@ -3,12 +3,56 @@ This is a proof of concept to demonstrate how Alexa might be used to support the
 """
 
 from __future__ import print_function
+from bs4 import BeautifulSoup
+import requests
+from xhtml2pdf import pisa
+from fuzzywuzzy import fuzz
+from fuzzywuzzy import process
+from operator import itemgetter
 import boto3
 from email.mime.text import MIMEText
 from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 import json
 import hashlib
+
+response = requests.get('https://aws.amazon.com/products/').text
+
+
+def getServiceList():
+    soup = BeautifulSoup(response, 'html.parser')
+    serviceList = []
+    for service in soup.find_all(class_='lb-content-item'):
+        serviceUrl = service.a['href']
+        serviceName = service.a.contents[0].strip()
+        serviceList.append({'serviceName': serviceName,
+                            'serviceUrl': 'https://aws.amazon.com'
+                            + serviceUrl})
+    return serviceList
+
+
+def getServiceDescription(serviceUrl):
+    response = requests.get(serviceUrl).text
+    soup = BeautifulSoup(response, 'html.parser')
+    return soup.find('div', {'id': 'aws-page-content'})
+
+
+def createPdf(serviceUrl):
+    outputFilename = '/tmp/service_description.pdf'
+    with open(outputFilename, 'w+b') as resultFile:
+        pisa.CreatePDF(getServiceDescription(serviceUrl).encode('utf-8'),
+                       resultFile)
+
+
+def findService(serviceName):
+    confidenceList = []
+    serviceList = getServiceList()
+    for service in serviceList:
+        service.update({'ratio': fuzz.ratio(service, serviceName)})
+        confidenceList.append(service)
+    sortedConfidenceList = sorted(confidenceList,
+                                  key=itemgetter('ratio'), reverse=True)
+    return sortedConfidenceList[0]
 
 
 def verifyEmail(email):
@@ -23,7 +67,24 @@ def verifyEmail(email):
         return True
 
 
-def sendEmail(emailAddress, kwargs):
+def getAllParagraphs(url):
+    soup = BeautifulSoup(url, 'html.parser')
+    paragraphs = []
+    content = soup.find(role='main')
+    for paragraph in content.find_all('p'):
+        if paragraph is not None:
+            paragraphs.append(paragraph.text.strip())
+    return paragraphs
+
+
+def getUrlDigest(url):
+    m = hashlib.md5()
+    m.update(url.content)
+    digest = m.hexdigest()
+    return digest
+
+
+def sendEmail(serviceUrl, serviceName, emailAddress):
     client = boto3.client('ses')
     if verifyEmail(emailAddress) is None:
         msg = MIMEMultipart()
@@ -70,6 +131,9 @@ def lambda_handler(event, context):
     print(alexa_event)
     intent = alexa_event['request']['intent']
     print(intent)
+    service_name = intent['slots']['service']['value']
     emailProfile = get_user_info(alexa_event['session']['user']['accessToken'])['email']
-    print("Email destination: %s" % emailProfile)
-#    resultResponse = sendEmail(emailProfile, kwargs)
+    service = findService(service_name)
+    html = requests.get(service['serviceUrl']).text
+    createPdf(service['serviceUrl'])
+    resultResponse = sendEmail(service['serviceUrl'], service['serviceName'], emailProfile)

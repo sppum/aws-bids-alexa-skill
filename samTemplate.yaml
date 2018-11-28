@@ -41,6 +41,24 @@ Resources:
           Properties:
             Topic: !Ref awsBidsAlexaSns
 
+  awsBidsServicesSkill:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: lambda_function.lambda_handler
+      Runtime: python3.6
+      CodeUri: services/
+      Timeout: 300
+      Policies:
+      - AmazonSESFullAccess
+      Events:
+        SNS:
+          Type: SNS
+          Properties:
+            Topic: !Ref awsBidsServicesSns
+      Environment:
+        Variables:
+          SNS_EMAIL_TOPIC: !Ref awsBidsAlexaSns
+
   awsBidsComplianceSkill:
     Type: AWS::Serverless::Function
     Properties:
@@ -59,6 +77,7 @@ Resources:
       Environment:
         Variables:
           COMPLIANCE_BUCKETNAME: !Ref ComplianceS3Bucket
+          SNS_EMAIL_TOPIC: !Ref awsBidsAlexaSns
 
   ComplianceS3Bucket:
     Type: AWS::S3::Bucket
@@ -83,6 +102,9 @@ Resources:
           Type: SNS
           Properties:
             Topic: !Ref awsBidsTaxSns
+      Environment:
+        Variables:
+          SNS_EMAIL_TOPIC: !Ref awsBidsAlexaSns
 
   awsBidsDirectorsSkill:
     Type: AWS::Serverless::Function
@@ -92,13 +114,15 @@ Resources:
       CodeUri: directors/
       Timeout: 300
       Policies:
-      - AmazonS3FullAccess
       - AmazonSESFullAccess
       Events:
         SNS:
           Type: SNS
           Properties:
             Topic: !Ref awsBidsDirectorsSns
+      Environment:
+        Variables:
+          SNS_EMAIL_TOPIC: !Ref awsBidsAlexaSns
 
   awsBidsTaxSns:
     Type: "AWS::SNS::Topic"
@@ -117,6 +141,12 @@ Resources:
     Properties: 
       DisplayName: AWS Bids Alexa Topic
       TopicName: !Join ["-", [ awsBidsAlexaSns, Environment ]]
+
+  awsBidsServicesSns:
+    Type: "AWS::SNS::Topic"
+    Properties: 
+      DisplayName: AWS Bids Services Topic
+      TopicName: !Join ["-", [ awsBidsServicesSns, Environment ]]
 
   bidsServicesTable:
     Type: 'AWS::DynamoDB::Table'

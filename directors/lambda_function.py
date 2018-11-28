@@ -11,6 +11,9 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import json
 import hashlib
+from os import environ
+
+EmailSnsTopic = environ.get('SNS_EMAIL_TOPIC')
 
 response = requests.get('https://aws.amazon.com/tax-help/european-union/').text
 boardUrl = requests.get('https://www.sec.gov/Archives/edgar/data/1018724/000119312510164087/dex991.htm').text
@@ -20,6 +23,21 @@ TAXID = '91-1646860'
 
 #taxPdf = requests.get('https://inside.amazon.com/en/services/legal/us/spendingandtransaction/Documents/vendor.pdf').text
 
+
+def push_sns(event, snsTopic):
+    if os.getenv('AWS_SAM_LOCAL'):
+        print('SAM_LOCAL DETECTED')
+        sns = boto3.client('sns',
+                           endpoint_url='http://localstack:4575',
+                           region_name='us-east-1')
+    else:
+        sns = boto3.client('sns')
+    response = sns.publish(
+        TopicArn=snsTopic,
+        Message=json.dumps(event)
+    )
+    return response
+    
 
 def getEO():
     """
@@ -98,9 +116,9 @@ def get_user_info(access_token):
 
 
 def lambda_handler(event, context):
-    print(event)
+    print("Received event: " + event)
     alexa_event = json.loads(event['Records'][0]['Sns']['Message'])
-    print(alexa_event)
+    print("Alexa event: " + alexa_event)
     intent = alexa_event['request']['intent']
     if 'emailDirectors' in intent['name']:
         directors = getDirectors()
