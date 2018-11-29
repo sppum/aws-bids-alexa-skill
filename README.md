@@ -21,6 +21,25 @@ https://developer.amazon.com/docs/custom-skills/skills-beta-testing-for-alexa-sk
         - Allowed Return URLs: the 3 from the Alexa Skills Kit
 4. Login to Amazon from the skill, OAUTH dance...
 
+# Testing
+If you want to use the Alexa Skills Kit (ask) then the following could be
+useful.
+
+1. Make sure you have installed ASK per the instructions below
+    - https://developer.amazon.com/docs/smapi/quick-start-alexa-skills-kit-command-line-interface.html
+2. If you haven't used ASK on this project before:
+    - 'ask init'
+        - Create the profile if needed, select one you already have if desired
+    - Once the OAuth dance is done choose the Vendor ID where the skill is
+      installed
+3. Get the ID for the skill you want to test:
+    - 'ask api list' | jq '.skills[] | select(.nameByLocale["en-GB"] | test("bid support")) .skillId'
+        - (this errors a bit, needs fixing)
+4. Now use 'ask simulate', for example:
+    - 'ask simulate -l en-GB -s amzn1.ask.skill.dc7737f5-ba27-49fe-95d6-63695240beed -t "ask sales support to email me the DUNS number for amazon"'
+
+More here:
+    - https://github.com/alexa/skill-sample-nodejs-test-automation/blob/master/labs/lab03.md
 
 # Things
 Manually add email to SES; this is checked by verifyEmail and is needed for the function to work

@@ -199,7 +199,7 @@ def takeNote(event, context):
 
 def emailServiceDescription(event, context):
     print('############################')
-    snsTopic = os.environ.get('SNS_EMAIL_TOPIC')
+    snsTopic = os.environ.get('SERVICES_TOPIC')
     dialog_state = event['request']['dialogState']
 
     if dialog_state in ('STARTED', 'IN_PROGRESS'):
@@ -208,7 +208,6 @@ def emailServiceDescription(event, context):
     elif dialog_state == 'COMPLETED':
         if 'service' in event['request']['intent']['slots']:
             service_name = event['request']['intent']['slots']['service']['value']
-            messageid = push_sns(event, snsTopic)
             response = push_sns(event, snsTopic)
             print("Pushed to topic: %s" % snsTopic)
             print(response)

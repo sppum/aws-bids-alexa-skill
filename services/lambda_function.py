@@ -16,6 +16,10 @@ from email.mime.multipart import MIMEMultipart
 import json
 import hashlib
 
+from os import environ
+
+SNS_EMAIL_TOPIC = environ.get('SNS_EMAIL_TOPIC')
+
 response = requests.get('https://aws.amazon.com/products/').text
 
 
@@ -55,18 +59,6 @@ def findService(serviceName):
     return sortedConfidenceList[0]
 
 
-def verifyEmail(email):
-    client = boto3.client('ses')
-    response = client.list_verified_email_addresses()
-    if email in response['VerifiedEmailAddresses']:
-        return None
-    else:
-        response = client.verify_email_address(
-            EmailAddress=email,
-        )
-        return True
-
-
 def getAllParagraphs(url):
     soup = BeautifulSoup(url, 'html.parser')
     paragraphs = []
@@ -84,43 +76,20 @@ def getUrlDigest(url):
     return digest
 
 
-def sendEmail(serviceUrl, serviceName, emailAddress):
-    client = boto3.client('ses')
-    if verifyEmail(emailAddress) is None:
-        msg = MIMEMultipart()
-        msg['Subject'] = 'Here is the service description for ' + serviceName
-        msg['From'] = emailAddress
-        msg['To'] = emailAddress
-
-        msg.preamble = 'Multipart message.\n'
-
-        part = MIMEText('Service description: %r ' %
-                        getAllParagraphs(requests.get(serviceUrl).text)[0:2])
-        msg.attach(part)
-
-        part = MIMEApplication(open('/tmp/service_description.pdf',
-                                    'rb').read())
-        part.add_header('Content-Disposition', 'attachment',
-                        filename='service_description.pdf')
-        msg.attach(part)
-
-        result = client.send_raw_email(RawMessage={
-            'Data': msg.as_string()
-            },
-            Source=msg['From'])
-        print(result)
-        return "I'm emailing you a service description for " + serviceName
+def push_sns(event, snsTopic):
+    if os.getenv('AWS_SAM_LOCAL'):
+        print('SAM_LOCAL DETECTED')
+        sns = boto3.client('sns',
+                           endpoint_url='http://localstack:4575',
+                           region_name='us-east-1')
     else:
-        return 'Please go to your mail and verify your email address so we can email you the service description'
+        sns = boto3.client('sns')
+    response = sns.publish(
+        TopicArn=snsTopic,
+        Message=json.dumps(event)
+    )
+    return response
 
-
-def get_user_info(access_token):
-    amazonProfileURL = 'https://api.amazon.com/user/profile?access_token='
-    r = requests.get(url=amazonProfileURL+access_token)
-    if r.status_code == 200:
-        return r.json()
-    else:
-        return False
 
 # --------------- Main handler ------------------
 
@@ -132,8 +101,7 @@ def lambda_handler(event, context):
     intent = alexa_event['request']['intent']
     print(intent)
     service_name = intent['slots']['service']['value']
-    emailProfile = get_user_info(alexa_event['session']['user']['accessToken'])['email']
     service = findService(service_name)
     html = requests.get(service['serviceUrl']).text
     createPdf(service['serviceUrl'])
-    resultResponse = sendEmail(service['serviceUrl'], service['serviceName'], emailProfile)
+    resultResponse = push_sns(service['serviceUrl'], service['serviceName'], SNS_EMAIL_TOPIC)
