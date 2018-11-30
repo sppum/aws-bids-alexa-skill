@@ -16,7 +16,7 @@ from email.mime.multipart import MIMEMultipart
 import json
 import hashlib
 
-from os import environ
+from os import environ, getenv
 
 SNS_EMAIL_TOPIC = environ.get('SNS_EMAIL_TOPIC')
 
@@ -77,7 +77,7 @@ def getUrlDigest(url):
 
 
 def push_sns(event, snsTopic):
-    if os.getenv('AWS_SAM_LOCAL'):
+    if getenv('AWS_SAM_LOCAL'):
         print('SAM_LOCAL DETECTED')
         sns = boto3.client('sns',
                            endpoint_url='http://localstack:4575',
