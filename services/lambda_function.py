@@ -91,6 +91,21 @@ def push_sns(event, snsTopic):
     return response
 
 
+def build_email(serviceUrl):
+    """
+    Build the email before sending.
+    """
+    msg = MIMEMultipart()
+    msg.preamble = 'Multipart message.\n'
+
+    # Get the first 3 two paragraphs
+    part = MIMEText('Service Description: %r ' %
+                    getAllParagraphs(requests.get(serviceUrl).text)[0:2])
+    msg.attach(part)
+
+    return msg
+
+
 # --------------- Main handler ------------------
 
 
@@ -104,4 +119,8 @@ def lambda_handler(event, context):
     service = findService(service_name)
     html = requests.get(service['serviceUrl']).text
     createPdf(service['serviceUrl'])
-    resultResponse = push_sns(service['serviceUrl'], service['serviceName'], SNS_EMAIL_TOPIC)
+    message = {}
+    message['serviceName'] = service['serviceName']
+    message['serviceUrl'] = service['serviceUrl']
+    message['body'] = build_email(service['serviceUrl'])
+    resultResponse = push_sns(message, SNS_EMAIL_TOPIC)

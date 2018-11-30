@@ -23,34 +23,49 @@ def verifyEmail(email):
         return True
 
 
-def sendEmail(emailAddress, kwargs):
+def sendEmail(emailAddress, **kwargs):
     client = boto3.client('ses')
+    emailAddress = ''
+    subjectLine = ''
+    msg = {}
+    if kwargs is not None:
+        for key, value in kwargs.items():
+            msg[key] = value
+            if emailAddress not in kwargs:
+                print("No emailAddress provided, failing safely")
+                raise SystemExit
+            if subjectLine not in kwargs:
+                subjectLine = 'DEFAULT SUBJECT: REPLACE ME'
+                msg['subjectLine'] = subjectLine
+            if body not in kwargs:
+                print("No body provided, failing safely")
+                raise SystemExit
+
     if verifyEmail(emailAddress) is None:
         msg = MIMEMultipart()
-        msg['Subject'] = 'Here is the service description for ' + serviceName
+        msg['Subject'] = subjectLine
         msg['From'] = emailAddress
         msg['To'] = emailAddress
 
         msg.preamble = 'Multipart message.\n'
 
-        part = MIMEText('Service description: %r ' %
-                        getAllParagraphs(requests.get(serviceUrl).text)[0:2])
+        part = MIMEText(msg['body'])
         msg.attach(part)
 
-        part = MIMEApplication(open('/tmp/service_description.pdf',
-                                    'rb').read())
-        part.add_header('Content-Disposition', 'attachment',
-                        filename='service_description.pdf')
-        msg.attach(part)
+        #part = MIMEApplication(open('/tmp/service_description.pdf',
+        #                            'rb').read())
+        #part.add_header('Content-Disposition', 'attachment',
+        #                filename='service_description.pdf')
+        #msg.attach(part)
 
         result = client.send_raw_email(RawMessage={
             'Data': msg.as_string()
             },
             Source=msg['From'])
         print(result)
-        return "I'm emailing you a service description for " + serviceName
+        return "I'm emailing you a mail with subject: %s" % msg['Subject']
     else:
-        return 'Please go to your mail and verify your email address so we can email you the service description'
+        return 'Please go to your mail and verify your email address so we can send you an email'
 
 
 def get_user_info(access_token):
