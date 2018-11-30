@@ -26,27 +26,21 @@ def verifyEmail(email):
 
 def sendEmail(**kwargs):
     client = boto3.client('ses')
-    emailAddress = ''
-    subjectLine = ''
     msg = {}
     if kwargs is not None:
         for key, value in kwargs.items():
             msg[key] = value
-            if emailAddress not in kwargs:
-                print("No emailAddress provided, failing safely")
+            if 'To' not in kwargs:
+                print("No 'To' provided, failing safely")
                 raise SystemExit
-            if subjectLine not in kwargs:
-                subjectLine = 'DEFAULT SUBJECT: REPLACE ME'
-                msg['subjectLine'] = subjectLine
-            if body not in kwargs:
-                print("No body provided, failing safely")
+            if 'Subject' not in kwargs:
+                msg['Subject'] = 'DEFAULT SUBJECT: REPLACE ME'
+            if 'Body' not in kwargs:
+                print("No Body provided, failing safely")
                 raise SystemExit
 
     if verifyEmail(emailAddress) is None:
         msg = MIMEMultipart()
-        msg['Subject'] = subjectLine
-        msg['From'] = emailAddress
-        msg['To'] = emailAddress
 
         msg.preamble = 'Multipart message.\n'
 
@@ -85,9 +79,9 @@ def lambda_handler(event, context):
     message_event = json.loads(event['Records'][0]['Sns']['Message'])
     print(message_event)
     # Now return the message to a format which MIMEEmail expects
-    body = jsonpickle.decode(message_event['body'])
-    emailProfile = message_event['recipient']
+    Body = jsonpickle.decode(message_event['Body'])
+    emailProfile = message_event['To']
 
     print("Email destination: %s" % emailProfile)
     print("Email subject: %s" % message_event['subjectLine'])
-#    resultResponse = sendEmail(emailAddress=emailProfile, subjectLine=message_event['subjectLine'], body=body)
+    resultResponse = sendEmail(To=emailProfile, Subject=message_event['Subject'], Body=Body)

@@ -134,8 +134,8 @@ def lambda_handler(event, context):
     #createPdf(service['serviceUrl'])
     emailAddress = get_user_info(event['context']['System']['user']['accessToken'])['email']
     message = {}
-    message['recipient'] = emailAddress
-    message['subjectLine'] = 'Here is the service description for ' + service['serviceName']
+    message['To'] = emailAddress
+    message['Subject'] = 'Here is the service description for ' + service['serviceName']
     message['serviceUrl'] = service['serviceUrl']
-    message['body'] = build_email(service['serviceUrl'])
+    message['Body'] = build_email(service['serviceUrl'])
     resultResponse = push_sns(message, SNS_EMAIL_TOPIC)
