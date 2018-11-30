@@ -135,6 +135,7 @@ def lambda_handler(event, context):
     emailAddress = get_user_info(event['context']['System']['user']['accessToken'])['email']
     message = {}
     message['To'] = emailAddress
+    message['From'] = emailAddress
     message['Subject'] = 'Here is the service description for ' + service['serviceName']
     message['serviceUrl'] = service['serviceUrl']
     message['Body'] = build_email(service['serviceUrl'])

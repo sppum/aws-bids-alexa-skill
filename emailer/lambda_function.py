@@ -33,30 +33,23 @@ def sendEmail(**kwargs):
             if 'To' not in kwargs:
                 print("No 'To' provided, failing safely")
                 raise SystemExit
+            if 'From' not in kwargs:
+                print("No 'From' provided, failing safely")
+                raise SystemExit
             if 'Subject' not in kwargs:
                 msg['Subject'] = 'DEFAULT SUBJECT: REPLACE ME'
             if 'Body' not in kwargs:
                 print("No Body provided, failing safely")
                 raise SystemExit
 
-    if verifyEmail(emailAddress) is None:
-        msg = MIMEMultipart()
-
-        msg.preamble = 'Multipart message.\n'
-
-        part = MIMEText(msg['body'])
-        msg.attach(part)
-
-        #part = MIMEApplication(open('/tmp/service_description.pdf',
-        #                            'rb').read())
-        #part.add_header('Content-Disposition', 'attachment',
-        #                filename='service_description.pdf')
-        #msg.attach(part)
-
+    if verifyEmail(msg['To']) is None:
         result = client.send_raw_email(RawMessage={
-            'Data': msg.as_string()
+            'Data': msg['Body'].as_string()
             },
-            Source=msg['From'])
+            Source=msg['From'],
+            Destinations=[
+                msg['To']
+                ])
         print(result)
         return "I'm emailing you a mail with subject: %s" % msg['Subject']
     else:
@@ -81,7 +74,4 @@ def lambda_handler(event, context):
     # Now return the message to a format which MIMEEmail expects
     Body = jsonpickle.decode(message_event['Body'])
     emailProfile = message_event['To']
-
-    print("Email destination: %s" % emailProfile)
-    print("Email subject: %s" % message_event['subjectLine'])
     resultResponse = sendEmail(To=emailProfile, Subject=message_event['Subject'], Body=Body)
