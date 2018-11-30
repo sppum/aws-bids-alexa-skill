@@ -15,6 +15,7 @@ from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 import json
 import hashlib
+import jsonpickle
 
 from os import environ, getenv
 
@@ -103,7 +104,19 @@ def build_email(serviceUrl):
                     getAllParagraphs(requests.get(serviceUrl).text)[0:2])
     msg.attach(part)
 
+    # Now encode it so that it will traverse our functions intact
+    msg = jsonpickle.encode(msg)
+
     return msg
+
+
+def get_user_info(access_token):
+    amazonProfileURL = 'https://api.amazon.com/user/profile?access_token='
+    r = requests.get(url=amazonProfileURL+access_token)
+    if r.status_code == 200:
+        return r.json()
+    else:
+        return False
 
 
 # --------------- Main handler ------------------
@@ -117,10 +130,12 @@ def lambda_handler(event, context):
     print(intent)
     service_name = intent['slots']['service']['value']
     service = findService(service_name)
-    html = requests.get(service['serviceUrl']).text
-    createPdf(service['serviceUrl'])
+    #html = requests.get(service['serviceUrl']).text
+    #createPdf(service['serviceUrl'])
+    emailAddress = get_user_info(event['context']['System']['user']['accessToken'])['email']
     message = {}
-    message['serviceName'] = service['serviceName']
+    message['recipient'] = emailAddress
+    message['subjectLine'] = 'Here is the service description for ' + service['serviceName']
     message['serviceUrl'] = service['serviceUrl']
     message['body'] = build_email(service['serviceUrl'])
     resultResponse = push_sns(message, SNS_EMAIL_TOPIC)

@@ -9,6 +9,7 @@ from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 import json
 import hashlib
+import jsonpickle
 
 
 def verifyEmail(email):
@@ -23,7 +24,7 @@ def verifyEmail(email):
         return True
 
 
-def sendEmail(emailAddress, **kwargs):
+def sendEmail(**kwargs):
     client = boto3.client('ses')
     emailAddress = ''
     subjectLine = ''
@@ -81,10 +82,12 @@ def get_user_info(access_token):
 
 def lambda_handler(event, context):
     print(event)
-    alexa_event = json.loads(event['Records'][0]['Sns']['Message'])
-    print(alexa_event)
-    intent = alexa_event['request']['intent']
-    print(intent)
-    emailProfile = get_user_info(alexa_event['session']['user']['accessToken'])['email']
+    message_event = json.loads(event['Records'][0]['Sns']['Message'])
+    print(message_event)
+    # Now return the message to a format which MIMEEmail expects
+    body = jsonpickle.decode(message_event['body'])
+    emailProfile = message_event['recipient']
+
     print("Email destination: %s" % emailProfile)
-#    resultResponse = sendEmail(emailProfile, kwargs)
+    print("Email subject: %s" % message_event['subjectLine'])
+#    resultResponse = sendEmail(emailAddress=emailProfile, subjectLine=message_event['subjectLine'], body=body)

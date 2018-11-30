@@ -4,3 +4,4 @@ xhtml2pdf
 fuzzywuzzy
 python-Levenshtein
 lxml
+jsonpickle
