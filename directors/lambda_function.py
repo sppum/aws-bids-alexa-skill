@@ -11,7 +11,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import json
 import hashlib
-from os import environ
+from os import environ, getenv
 
 EmailSnsTopic = environ.get('SNS_EMAIL_TOPIC')
 
@@ -25,7 +25,7 @@ TAXID = '91-1646860'
 
 
 def push_sns(event, snsTopic):
-    if os.getenv('AWS_SAM_LOCAL'):
+    if getenv('AWS_SAM_LOCAL'):
         print('SAM_LOCAL DETECTED')
         sns = boto3.client('sns',
                            endpoint_url='http://localstack:4575',
