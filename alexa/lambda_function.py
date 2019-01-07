@@ -376,6 +376,7 @@ def lambda_handler(event, context):
             emailAddress = 'cmking@gmail.com'
         else:
             emailAddress = get_user_info(event['context']['System']['user']['accessToken'])['email']
+        print("Email: " % emailAddress)
         if not verifyEmail(emailAddress):
             return statement('EmailNotVerified',
                              'Please check your email to verify your email address before we can send you any details.')		#here also don't use StopIntent
